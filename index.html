@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en"><head><script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Aptx Eagle Live Sales Pipeline",
+  "schemaVersion": 1,
+  "description": "Live daily sales pipeline dashboard for AdvancePro Technologies, focused on Monday CRM Deals. Pulls four boards: APTX Deals (2145982976), Eagle Deals (2152071345), APTX Activities (2145982975), Eagle Activities (2152071344). Optional: GA Google Sheet (1NHXdvL...) contributes the count of valid leads in the current billing period only. Top: Today panel (new deals + phone calls + meetings + emails), 7-day rollup. Below: pipeline KPIs, funnel, risks/opportunities/GA, grouped deals table with owner and dollar columns. Bottom: diagnostics footer showing fetch status per source.",
+  "mcpTools": [
+    "mcp__58c3fc5a-bace-447a-aadd-9cfaec61309b__get_board_items_page"
+  ],
+  "mcpServerNames": [
+    "monday.com"
+  ]
+}
+</script>
+
+
+<meta charset="utf-8">
+<title>AdvancePro Technologies — Live Sales Pipeline</title>
+<style>
+  :root {
+    color-scheme: light;
+    --navy: #0D1B2A; --navy-2: #1A3C5E;
+    --teal: #1A7A6E; --teal-deep: #0F5B52;
+    --gold: #C9A84C;
+    --purple: #6B3FA0; --purple-deep: #4A1D8C;
+    --red: #DC2626; --red-deep: #991B1B;
+    --green: #16A34A; --green-deep: #1A5C3A;
+    --amber: #D97706;
+    --slate: #334155; --slate-2: #475569; --slate-3: #64748B;
+    --blue: #1D4278; --blue-2: #2563EB;
+    --bg: #F8FAFC; --row-alt: #F0F4F8; --border: #E2E8F0;
+    --text: #0F172A; --text-2: #475569; --text-3: #94A3B8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.4; }
+  .header { background: var(--navy); color: #fff; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+  .header-title { font-size: 15px; font-weight: 700; }
+  .header-title .sub { font-weight: 400; color: #94A3B8; margin-left: 8px; font-size: 12px; }
+  .header-right { display: flex; gap: 14px; align-items: center; }
+  .last-refresh { color: #94A3B8; font-size: 12px; }
+  .btn-refresh { background: var(--teal); color: #fff; border: 0; padding: 7px 16px; border-radius: 4px; font-weight: 600; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+  .btn-refresh:hover { background: #156256; }
+  .btn-refresh:disabled { background: #4A5568; cursor: wait; }
+  .btn-download { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.30); padding: 7px 14px; border-radius: 4px; font-weight: 600; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .btn-download:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.55); }
+  .spinner { width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .main { padding: 16px 24px 40px; }
+  .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-2); font-weight: 700; margin: 4px 0 8px; display: flex; align-items: baseline; gap: 10px; }
+  .section-title .ts { color: var(--text-3); font-weight: 500; text-transform: none; letter-spacing: 0; font-size: 11px; margin-left: auto; }
+
+  /* TODAY — TWO PANELS */
+  .today-grid-outer { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; margin-bottom: 18px; }
+  .today-panel { background: linear-gradient(135deg, #0D1B2A 0%, #1A3C5E 100%); color: #fff; border-radius: 8px; padding: 18px 22px; box-shadow: 0 2px 8px rgba(13,27,42,0.15); }
+  .today-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .today-title { font-size: 14px; font-weight: 700; }
+  .today-date { color: #94A3B8; font-size: 11px; }
+
+  .calls-summary { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.10); }
+  .calls-big { font-size: 38px; font-weight: 700; line-height: 1; }
+  .calls-meta { color: #CBD5E1; font-size: 12px; flex: 1; }
+  .calls-meta strong { color: #fff; }
+
+  .call-list { display: flex; flex-direction: column; gap: 6px; }
+  .call-row { display: grid; grid-template-columns: 70px 1fr 100px; gap: 10px; align-items: center; padding: 6px 8px; background: rgba(255,255,255,0.05); border-radius: 4px; font-size: 12px; }
+  .call-row.unmapped { background: rgba(220,38,38,0.10); border: 1px solid rgba(220,38,38,0.35); }
+  .call-time { font-variant-numeric: tabular-nums; color: #94A3B8; font-size: 11px; }
+  .call-deal { color: #fff; font-weight: 600; }
+  .call-deal .contact-line { font-weight: 400; color: #94A3B8; font-size: 11px; margin-top: 1px; }
+  .call-stage-pill { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 700; text-align: center; }
+  .pill-engaged { background: rgba(22,163,74,0.20); color: #86EFAC; border: 1px solid rgba(22,163,74,0.50); }
+  .pill-nonresp { background: rgba(220,38,38,0.20); color: #FCA5A5; border: 1px solid rgba(220,38,38,0.50); }
+  .pill-direct { background: rgba(99,102,241,0.20); color: #C7D2FE; border: 1px solid rgba(99,102,241,0.50); }
+  .pill-unknown { background: rgba(148,163,184,0.20); color: #CBD5E1; border: 1px solid rgba(148,163,184,0.50); }
+
+  .other-today { display: flex; flex-direction: column; gap: 12px; }
+  .other-tile { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); border-radius: 6px; padding: 10px 14px; color: #fff; }
+  .other-tile .lbl { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; font-weight: 600; margin-bottom: 2px; }
+  .other-tile .num { font-size: 22px; font-weight: 700; line-height: 1.1; }
+  .other-tile .sub { font-size: 11px; color: #CBD5E1; margin-top: 4px; }
+  .other-tile.zero .num { color: #475569; }
+
+  .data-note { font-size: 10.5px; color: #94A3B8; margin-top: 10px; padding-top: 10px; border-top: 1px dotted rgba(255,255,255,0.12); font-style: italic; line-height: 1.4; }
+
+  .week-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 18px; }
+  .wk-tile { background: #fff; border-radius: 6px; padding: 10px 14px; border-left: 3px solid var(--slate-3); box-shadow: 0 1px 2px rgba(15,23,42,0.05); }
+  .wk-tile .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-2); font-weight: 600; margin-bottom: 2px; }
+  .wk-tile .num { font-size: 20px; font-weight: 700; }
+  .wk-tile.calls { border-left-color: var(--blue-2); }
+  .wk-tile.meetings { border-left-color: var(--purple); }
+  .wk-tile.emails { border-left-color: var(--teal); }
+  .wk-tile.deals { border-left-color: var(--green); }
+  .wk-tile.followups { border-left-color: var(--amber); }
+
+  .kpi-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi { background: #fff; border-radius: 6px; padding: 14px 16px; border-top: 4px solid #ccc; box-shadow: 0 1px 2px rgba(15,23,42,0.05); }
+  .kpi.navy { border-top-color: var(--navy-2); } .kpi.teal { border-top-color: var(--teal); }
+  .kpi.gold { border-top-color: var(--gold); } .kpi.purple { border-top-color: var(--purple); }
+  .kpi.red { border-top-color: var(--red); } .kpi.slate { border-top-color: var(--slate); }
+  .kpi-num { font-size: 28px; font-weight: 700; line-height: 1.1; }
+  .kpi-label { font-size: 11px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.6px; margin-top: 4px; font-weight: 600; }
+  .kpi-sub { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+
+  .funnel { display: flex; margin-bottom: 16px; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 2px rgba(15,23,42,0.08); height: 64px; }
+  .funnel-seg { flex: 1; color: #fff; padding: 10px 12px; display: flex; flex-direction: column; justify-content: center; border-right: 1px solid rgba(255,255,255,0.12); }
+  .funnel-seg:last-child { border-right: 0; }
+  .funnel-seg .n { font-size: 22px; font-weight: 700; line-height: 1; }
+  .funnel-seg .l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; margin-top: 6px; opacity: 0.9; font-weight: 600; }
+
+  .insight-row { display: grid; grid-template-columns: 1fr 1fr 0.8fr; gap: 12px; margin-bottom: 16px; }
+  .insight-card { background: #fff; border-radius: 6px; border-top: 4px solid #ccc; padding: 14px 16px; box-shadow: 0 1px 2px rgba(15,23,42,0.05); min-height: 120px; }
+  .insight-card.red { border-top-color: var(--red); }
+  .insight-card.green { border-top-color: var(--green); }
+  .insight-card.gold { border-top-color: var(--gold); }
+  .insight-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-2); font-weight: 700; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: baseline; }
+  .insight-meta { font-size: 11px; color: var(--text-3); font-weight: 500; text-transform: none; letter-spacing: 0; }
+  .insight-list { list-style: none; padding: 0; margin: 0; font-size: 12.5px; }
+  .insight-list li { padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; gap: 8px; justify-content: space-between; align-items: center; }
+  .insight-list li:last-child { border-bottom: 0; }
+  .insight-list .co { font-weight: 600; }
+  .insight-list .ctx { color: var(--text-2); font-size: 11.5px; }
+  .ga-big-num { font-size: 48px; font-weight: 700; color: var(--gold); line-height: 1; margin: 8px 0; }
+  .ga-period { font-size: 11px; color: var(--text-2); }
+  .ga-note { font-size: 11px; color: var(--text-3); margin-top: 8px; font-style: italic; }
+  .empty { color: var(--text-3); font-size: 12px; font-style: italic; padding: 8px 0; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.3px; white-space: nowrap; }
+  .badge-platform-aptx { background: var(--navy-2); color: #fff; }
+  .badge-platform-eagle { background: var(--teal); color: #fff; }
+  .badge-non-resp { background: var(--red); color: #fff; }
+  .badge-engaged { background: var(--green); color: #fff; }
+  .badge-demo { background: var(--purple); color: #fff; }
+  .badge-trial { background: var(--teal); color: #fff; }
+  .badge-scheduled { background: var(--blue-2); color: #fff; }
+  .badge-proposal { background: #66ccff; color: var(--navy); }
+  .badge-negotiation { background: var(--amber); color: #fff; }
+  .badge-sensitive { background: #401694; color: #fff; }
+  .badge-has-system { background: #bb3354; color: #fff; }
+  .badge-default { background: #CBD5E1; color: #0F172A; }
+  .badge-called-today { background: var(--blue-2); color: #fff; }
+  .badge-followup-pill { background: #DBEAFE; color: var(--blue); padding: 2px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 600; margin-left: 6px; white-space: nowrap; }
+
+  .table-wrap { background: #fff; border-radius: 6px; box-shadow: 0 1px 2px rgba(15,23,42,0.05); overflow: hidden; }
+  .deals-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .deals-table thead { background: #F1F5F9; }
+  .deals-table thead th { text-align: left; padding: 9px 12px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-2); font-weight: 700; border-bottom: 1px solid var(--border); position: sticky; top: 53px; background: #F1F5F9; z-index: 2; }
+  .deals-table tbody tr td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .deals-table tbody tr.alt td { background: var(--row-alt); }
+  .deals-table tbody tr.called-today td { background: #EFF6FF; }
+  .deals-table tbody tr.called-today.alt td { background: #DBEAFE; }
+  .deals-table .group-banner td { padding: 8px 14px; color: #fff; font-weight: 700; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; }
+  .group-banner.hot td { background: var(--navy-2); }
+  .group-banner.engaged td { background: var(--purple-deep); }
+  .group-banner.trials td { background: var(--blue); }
+  .group-banner.fu-engaged td { background: var(--green-deep); }
+  .group-banner.fu-nonresp td { background: var(--slate-2); }
+  .group-banner.eagle td { background: var(--teal-deep); }
+  .co-link { color: var(--navy); text-decoration: none; font-weight: 600; }
+  .co-link:hover { text-decoration: underline; }
+  .days { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .days-green { color: var(--green); } .days-amber { color: var(--amber); } .days-red { color: var(--red); }
+  .small { font-size: 11px; color: var(--text-2); }
+  .dim { color: var(--text-3); }
+  .stage-pair { display: flex; flex-direction: column; gap: 4px; }
+
+  .error-banner { background: #FEF3C7; border: 1px solid #FCD34D; color: #92400E; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; }
+  .error-banner .title { font-weight: 700; }
+  /* GA LEADS SECTION */
+  .ga-leads-wrap { background: #fff; border-radius: 6px; box-shadow: 0 1px 2px rgba(15,23,42,0.05); margin-bottom: 16px; overflow: hidden; border-top: 4px solid var(--gold); }
+  .ga-leads-head { padding: 14px 18px 10px; display: flex; justify-content: space-between; align-items: baseline; gap: 14px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #FFFBEB 0%, #FFFFFF 100%); }
+  .ga-leads-head .title { font-weight: 700; font-size: 14px; }
+  .ga-leads-head .subtitle { font-size: 11px; color: var(--text-2); }
+  .ga-leads-head .count { font-size: 24px; font-weight: 700; color: var(--gold); margin-right: 4px; }
+  .ga-platform-split { display: grid; grid-template-columns: 1.4fr 1fr; gap: 0; }
+  .ga-platform-block { padding: 12px 18px 16px; }
+  .ga-platform-block + .ga-platform-block { border-left: 1px solid var(--border); }
+  .ga-platform-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-2); font-weight: 700; margin-bottom: 8px; display: flex; align-items: baseline; gap: 8px; }
+  .ga-platform-title .pcount { background: var(--navy-2); color: #fff; padding: 1px 7px; border-radius: 10px; font-size: 10px; }
+  .ga-platform-block.eagle .ga-platform-title .pcount { background: var(--teal); }
+  .ga-list { display: flex; flex-direction: column; gap: 4px; }
+  .ga-item { display: grid; grid-template-columns: 1.4fr 1fr 70px 80px; gap: 8px; padding: 7px 10px; border-radius: 4px; background: #F8FAFC; align-items: center; font-size: 12px; }
+  .ga-item:nth-child(odd) { background: var(--row-alt); }
+  .ga-item.called { background: #DBEAFE !important; }
+  .ga-item .ga-co { font-weight: 600; }
+  .ga-item .ga-co a { color: var(--navy); text-decoration: none; }
+  .ga-item .ga-co a:hover { text-decoration: underline; }
+  .ga-item .ga-contact { color: var(--text-2); font-size: 11px; }
+  .ga-item .ga-stage { display: flex; flex-direction: column; gap: 2px; font-size: 10.5px; }
+  .ga-item .ga-days { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 11px; }
+  .ga-item .ga-followup { text-align: right; font-size: 10.5px; }
+  .ga-item .called-mark { display: inline-block; padding: 1px 6px; border-radius: 8px; background: var(--blue-2); color: #fff; font-size: 9.5px; font-weight: 700; margin-left: 4px; vertical-align: middle; }
+
+  .diag-footer { margin-top: 24px; padding: 12px 16px; background: #F1F5F9; border-radius: 6px; font-size: 11px; color: var(--text-2); display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+  .diag-footer strong { color: var(--text); font-weight: 700; }
+  .diag-pill { background: #fff; padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+  .diag-pill.snap { background: #E0E7FF; color: #3730A3; border-color: #A5B4FC; }
+  .diag-pill.live { background: #D1FAE5; color: #065F46; border-color: #6EE7B7; }
+
+  @media (max-width: 1200px) {
+    .kpi-row { grid-template-columns: repeat(3, 1fr); }
+    .today-grid-outer { grid-template-columns: 1fr; }
+    .week-row { grid-template-columns: repeat(3, 1fr); }
+    .insight-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-title">AdvancePro Technologies — Live Sales Pipeline <span class="sub">Monday CRM · Deals + Activities</span></div>
+    <div class="header-right">
+      <span class="last-refresh" id="last-refresh">Last refreshed 05:03 PM</span>
+      <button class="btn-download" id="download-btn" onclick="downloadDashboard()" title="Save a self-contained HTML copy of this dashboard">
+        ⬇ Download HTML
+      </button>
+      <button class="btn-refresh" id="refresh-btn" onclick="refresh()">
+        <span id="refresh-label">Refresh</span>
+      </button>
+    </div>
+  </div>
+  <div class="main" id="main"><div class="today-grid-outer"><div class="today-panel"><div class="today-head"><div class="today-title">📞 Today's Outbound Calls — Wednesday, May 13</div><div class="today-date">Zoom log ↔ Monday Contacts</div></div><div class="calls-summary"><div class="calls-big">7</div><div class="calls-meta">calls placed today · <strong>6</strong> mapped to deals · <strong style="color:#FCA5A5">1 unmapped</strong></div></div><div class="call-list"><div class="call-row unmapped"><div class="call-time">10:22 AM</div><div class="call-deal">⚠️ Unmapped — (832) 718-0194 (Texas)<div class="contact-line">Not in Contacts board — add as a new lead?</div></div><div><span class="call-stage-pill pill-unknown">No Monday match</span></div></div><div class="call-row"><div class="call-time">10:31 AM</div><div class="call-deal"><a class="co-link" style="color:#fff" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786687157" target="_blank" rel="noopener">Q-SAQ INC</a><div class="contact-line">Stefan Tea · (321) 525-1539 · Florida</div></div><div><span class="call-stage-pill pill-nonresp">Non-Responsive</span></div></div><div class="call-row"><div class="call-time">10:46 AM</div><div class="call-deal"><a class="co-link" style="color:#fff" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786713309" target="_blank" rel="noopener">Marey Heater Corp.</a><div class="contact-line">Lourdes Yanguas · (786) 659-2139 · Florida</div></div><div><span class="call-stage-pill pill-nonresp">Non-Responsive</span></div></div><div class="call-row"><div class="call-time">10:49 AM</div><div class="call-deal"><a class="co-link" style="color:#fff" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786707572" target="_blank" rel="noopener">Protected Wellness</a><div class="contact-line">Mehran Hamidi · (619) 481-0700 · California</div></div><div><span class="call-stage-pill pill-direct">Direct reply sent</span></div></div><div class="call-row"><div class="call-time">10:54 AM</div><div class="call-deal"><a class="co-link" style="color:#fff" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786702835" target="_blank" rel="noopener">The Terpene Store</a><div class="contact-line">Jay Cho · (213) 379-3314 · Los Angeles</div></div><div><span class="call-stage-pill pill-nonresp">Non-Responsive</span></div></div><div class="call-row"><div class="call-time">10:58 AM</div><div class="call-deal"><a class="co-link" style="color:#fff" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786714196" target="_blank" rel="noopener">Integrated System Design</a><div class="contact-line">Ed Romaine · (248) 668-8250 · Michigan</div></div><div><span class="call-stage-pill pill-nonresp">Non-Responsive</span></div></div><div class="call-row"><div class="call-time">11:45 AM</div><div class="call-deal"><a class="co-link" style="color:#fff" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2841310902" target="_blank" rel="noopener">Hemptique</a><div class="contact-line">Klara Nyari · (760) 602-4864 · Carlsbad, CA</div></div><div><span class="call-stage-pill pill-direct">Direct reply sent</span></div></div></div><div class="data-note">📌 Today's calls are inferred from your Zoom Phone log, cross-referenced with Monday Contacts (phone match + <code>updated_at</code> within ±2 min of the call). Vibe-view Notes on deals are not exposed via Monday's public API, so this proxy is the most reliable signal. To capture every call automatically going forward, connect a Zoom Phone MCP (or log calls as proper Activities).</div></div><div class="today-panel"><div class="today-head"><div class="today-title">📋 Other Today</div></div><div class="other-today"><div class="other-tile"><div class="lbl">📝 Notes Added to Deals</div><div class="num">1</div><div style="margin-top:6px;"><div style="font-size:11.5px;color:#CBD5E1;padding:4px 0;border-bottom:1px dotted rgba(255,255,255,0.08);"><a class="co-link" style="color:#fff" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2841809400" target="_blank">Botas Cebu APTX Shopify</a><div style="color:#94A3B8;font-size:11px;margin-top:2px;">Another call attempt, another voicemail. They are stuck (will not get back to us or respond to our communication attempts).</div></div></div></div><div class="other-tile"><div class="lbl">📅 Activities Board (formal log)</div><div class="num">1</div><div style="margin-top:6px;"><div style="font-size:11.5px;color:#CBD5E1;padding:4px 0;"><strong style="color:#fff">Call summary</strong> — Maria Rodriguez (linked to Botas Cebu APTX Shopify)</div></div></div><div class="other-tile zero"><div class="lbl">🤝 Meetings · ✉️ Emails · ✨ New Deals</div><div class="num">0 / 0 / 0</div><div class="sub">No meetings, emails, or new deals logged in Monday today.</div></div></div></div></div><div class="section-title">📈 Last 7 Days</div><div class="week-row"><div class="wk-tile calls"><div class="lbl">Phone Calls</div><div class="num">7</div></div><div class="wk-tile meetings"><div class="lbl">Meetings</div><div class="num">0</div></div><div class="wk-tile emails"><div class="lbl">Emails</div><div class="num">0</div></div><div class="wk-tile deals"><div class="lbl">New Deals</div><div class="num">1</div></div><div class="wk-tile followups"><div class="lbl">Follow-ups Due (next 7d)</div><div class="num">14</div></div></div><div class="section-title">📊 Pipeline at a Glance</div><div class="kpi-row"><div class="kpi navy"><div class="kpi-num">25</div><div class="kpi-label">Active APTX Deals</div><div class="kpi-sub">Excludes Won / Lost / Nurture / On Hold</div></div><div class="kpi teal"><div class="kpi-num">10</div><div class="kpi-label">Active Eagle Leads</div><div class="kpi-sub">All Eagle deals not converted/lost</div></div><div class="kpi gold"><div class="kpi-num">$51,400</div><div class="kpi-label">Pipeline Value</div><div class="kpi-sub">Sum of ARR + one-time fees</div></div><div class="kpi purple"><div class="kpi-num">1</div><div class="kpi-label">Demos Scheduled</div><div class="kpi-sub">Status = Demo Booked</div></div><div class="kpi red"><div class="kpi-num">1</div><div class="kpi-label">Revenue Risk</div><div class="kpi-sub">Hot stage + non-responsive/no follow-up</div></div><div class="kpi slate"><div class="kpi-num">47d</div><div class="kpi-label">Avg Days in Pipeline</div><div class="kpi-sub">Across all active deals</div></div></div><div class="funnel"><div class="funnel-seg" style="background:#1A3C5E"><div class="n">3</div><div class="l">Negotiation</div></div><div class="funnel-seg" style="background:#C9A84C"><div class="n">1</div><div class="l">Proposal</div></div><div class="funnel-seg" style="background:#6B3FA0"><div class="n">3</div><div class="l">Engaged</div></div><div class="funnel-seg" style="background:#334155"><div class="n">17</div><div class="l">Following Up</div></div><div class="funnel-seg" style="background:#1A7A6E"><div class="n">2</div><div class="l">In Trial</div></div><div class="funnel-seg" style="background:#64748B"><div class="n">1</div><div class="l">New Lead</div></div><div class="funnel-seg" style="background:#0F5B52"><div class="n">10</div><div class="l">Eagle Active</div></div></div><div class="section-title">🎯 Risks · Opportunities · GA Period</div><div class="insight-row"><div class="insight-card red"><div class="insight-title">Revenue Risks <span class="insight-meta">1</span></div><ul class="insight-list"><li><div><div class="co">Botas Cebu APTX Shopify</div><div class="ctx">Negotiation with non-responsive contact</div></div></li></ul></div><div class="insight-card green"><div class="insight-title">Opportunities <span class="insight-meta">2</span></div><ul class="insight-list"><li><div><div class="co">LA BODEGA DEL DULCE INC</div><div class="ctx">Demo booked — strong intent</div></div></li><li><div><div class="co">Nomaro</div><div class="ctx">Pricing/proposal discussed in notes</div></div></li></ul></div><div class="insight-card gold"><div class="insight-title">GA Leads This Period</div><div class="ga-big-num">3</div><div class="ga-period">Valid GA leads · 2026-04-24 → 2026-05-23</div><div class="ga-note">All GA sheet leads this period are tracked in Monday.</div></div></div><div class="section-title">🤖 Growth Automation Leads <span class="ts">All active GA-sourced deals · sorted by stage, then days in pipeline</span></div><div class="ga-leads-wrap"><div class="ga-leads-head"><div><span class="count">24</span><span class="title"> active GA leads</span><div class="subtitle">17 on APTX · 7 on Eagle · all link to Monday CRM</div></div><div class="subtitle">Sort: hot stages first → Following up → New · click any company to open in Monday</div></div><div class="ga-platform-split"><div class="ga-platform-block aptx"><div class="ga-platform-title">APTX <span class="pcount">17</span></div><div class="ga-list"><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2743570095" target="_blank" rel="noopener">Storehouse Tea</a></div><div class="ga-contact"><span>Dan Hershman · Vice President</span></div></div><div class="ga-stage"><div class="small">Negotiation</div><div><span class="badge badge-negotiation">Negotiation</span></div></div><div class="ga-days days days-red">78d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-20</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2885228422" target="_blank" rel="noopener">Pastabilities / The Pasta Shoppe</a></div><div class="ga-contact"><span>John Aron · COO · 615-668-8805</span></div></div><div class="ga-stage"><div class="small">Engaged</div><div><span class="badge badge-engaged">Engaged</span></div></div><div class="ga-days days days-green">12d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-20</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2873469610" target="_blank" rel="noopener">VinWizard</a></div><div class="ga-contact"><span>Nick Karavidas · Technical Sales</span></div></div><div class="ga-stage"><div class="small">Following up</div><div><span class="badge badge-engaged">Direct reply sent</span></div></div><div class="ga-days days days-green">16d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-20</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2858814120" target="_blank" rel="noopener">Nomaro</a></div><div class="ga-contact"><span>Joshua Small · CEO</span></div></div><div class="ga-stage"><div class="small">Following up</div><div><span class="badge badge-engaged">Direct reply sent</span></div></div><div class="ga-days days days-green">22d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-14</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2849402210" target="_blank" rel="noopener">Sweets Kendamas</a></div><div class="ga-contact"><span>Gabe Klemm · CEO</span></div></div><div class="ga-stage"><div class="small">Following up</div><div><span class="badge badge-engaged">Engaged</span></div></div><div class="ga-days days days-green">26d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-20</span></div></div><div class="ga-item called"><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2841310902" target="_blank" rel="noopener">Hemptique</a><span class="called-mark">📞 today</span></div><div class="ga-contact"><span>Klara Nyari · CEO/Owner · +1 760-602-4864</span></div></div><div class="ga-stage"><div class="small">Following up</div><div><span class="badge badge-engaged">Direct reply sent</span></div></div><div class="ga-days days days-green">29d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-14</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2838056387" target="_blank" rel="noopener">Stacked Flavor Co</a></div><div class="ga-contact"><span>Josh Wagner · CEO</span></div></div><div class="ga-stage"><div class="small">Following up</div><div><span class="badge badge-non-resp">Non-Responsive</span></div></div><div class="ga-days days days-amber">30d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-14</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2791457966" target="_blank" rel="noopener">Carolina Dock Equipment</a></div><div class="ga-contact"><span>Paul Miedema · President · +1 866-602-2147</span></div></div><div class="ga-stage"><div class="small">Following up</div><div><span class="badge badge-non-resp">Non-Responsive</span></div></div><div class="ga-days days days-amber">55d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-20</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786732411" target="_blank" rel="noopener">Austropical USA</a></div><div class="ga-contact"><span>Ray Smith · President · 505-400-2463</span></div></div><div class="ga-stage"><div class="small">Following up</div><div><span class="badge badge-non-resp">Non-Responsive</span></div></div><div class="ga-days days days-amber">56d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-14</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786689464" target="_blank" rel="noopener">:start-end</a></div><div class="ga-contact"><span>Taylor Brown · Partner</span></div></div><div class="ga-stage"><div class="small">Following up</div><div><span class="badge badge-non-resp">Non-Responsive</span></div></div><div class="ga-days days days-amber">56d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-14</span></div></div><div class="ga-item called"><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786687157" target="_blank" rel="noopener">Q-SAQ INC</a><span class="called-mark">📞 today</span></div><div class="ga-contact"><span>Stefan Tea · Managing Director · +1 321-525-1539</span></div></div><div class="ga-stage"><div class="small">Following up</div><div><span class="badge badge-non-resp">Non-Responsive</span></div></div><div class="ga-days days days-amber">56d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-14</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786687234" target="_blank" rel="noopener">Servotech</a></div><div class="ga-contact"><span>Michael Norman · President · 860-632-0164</span></div></div><div class="ga-stage"><div class="small">Following up</div><div><span class="badge badge-non-resp">Non-Responsive</span></div></div><div class="ga-days days days-amber">56d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-15</span></div></div><div class="ga-item called"><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786713309" target="_blank" rel="noopener">Marey Heater Corp.</a><span class="called-mark">📞 today</span></div><div class="ga-contact"><span>Lourdes Yanguas · President · +1 786-659-2139</span></div></div><div class="ga-stage"><div class="small">Following up</div><div><span class="badge badge-non-resp">Non-Responsive</span></div></div><div class="ga-days days days-amber">56d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-14</span></div></div><div class="ga-item called"><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786707572" target="_blank" rel="noopener">Protected Wellness</a><span class="called-mark">📞 today</span></div><div class="ga-contact"><span>Mehran Hamidi · CEO · +1 619-481-0700</span></div></div><div class="ga-stage"><div class="small">Following up</div><div><span class="badge badge-engaged">Direct reply sent</span></div></div><div class="ga-days days days-amber">56d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-14</span></div></div><div class="ga-item called"><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786702835" target="_blank" rel="noopener">The Terpene Store</a><span class="called-mark">📞 today</span></div><div class="ga-contact"><span>Jay Cho · Head of Marketing · +1 213-379-3314</span></div></div><div class="ga-stage"><div class="small">Following up</div><div><span class="badge badge-non-resp">Non-Responsive</span></div></div><div class="ga-days days days-amber">56d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-14</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786709466" target="_blank" rel="noopener">SlewPro</a></div><div class="ga-contact"><span>Richard Potesta · President &amp; COO</span></div></div><div class="ga-stage"><div class="small">Following up</div><div><span class="badge badge-engaged">Direct reply sent</span></div></div><div class="ga-days days days-amber">56d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-15</span></div></div><div class="ga-item called"><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786714196" target="_blank" rel="noopener">Integrated System Design</a><span class="called-mark">📞 today</span></div><div class="ga-contact"><span>Ed Romaine · VP Mktg &amp; Bus Dev · 248.668.8250</span></div></div><div class="ga-stage"><div class="small">Following up</div><div><span class="badge badge-non-resp">Non-Responsive</span></div></div><div class="ga-days days days-amber">56d</div><div class="ga-followup"><span class="badge-followup-pill">📅 2026-05-14</span></div></div></div></div><div class="ga-platform-block eagle"><div class="ga-platform-title">EAGLE <span class="pcount">7</span></div><div class="ga-list"><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2840954019" target="_blank" rel="noopener">UndefeatedJ &amp; Kick'n Kicks</a></div><div class="ga-contact"><span class="dim">No contact linked in Monday</span></div></div><div class="ga-stage"><div class="small">New</div><div><span class="badge badge-scheduled">Following Up</span></div></div><div class="ga-days days days-green">29d</div><div class="ga-followup"><span class="dim small">No follow-up</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2838058451" target="_blank" rel="noopener">J2K Fun-gistics</a></div><div class="ga-contact"><span class="dim">No contact linked in Monday</span></div></div><div class="ga-stage"><div class="small">New</div><div><span class="badge badge-scheduled">Following Up</span></div></div><div class="ga-days days days-amber">30d</div><div class="ga-followup"><span class="dim small">No follow-up</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2815400760" target="_blank" rel="noopener">Gather Brands</a></div><div class="ga-contact"><span>Nicole Williams · Director — Key Accounts · 818-239-9562</span></div></div><div class="ga-stage"><div class="small">New</div><div><span class="badge badge-scheduled">Following Up</span></div></div><div class="ga-days days days-amber">43d</div><div class="ga-followup"><span class="dim small">No follow-up</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2815435099" target="_blank" rel="noopener">Handle with Care Express</a></div><div class="ga-contact"><span>Gary Governale · President</span></div></div><div class="ga-stage"><div class="small">New</div><div><span class="badge badge-scheduled">Following Up</span></div></div><div class="ga-days days days-amber">43d</div><div class="ga-followup"><span class="dim small">No follow-up</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2786714244" target="_blank" rel="noopener">Ace Tool</a></div><div class="ga-contact"><span class="dim">No contact linked in Monday</span></div></div><div class="ga-stage"><div class="small">New</div><div><span class="badge badge-default">New</span></div></div><div class="ga-days days days-amber">56d</div><div class="ga-followup"><span class="dim small">No follow-up</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2786715813" target="_blank" rel="noopener">HelloMary</a></div><div class="ga-contact"><span class="dim">No contact linked in Monday</span></div></div><div class="ga-stage"><div class="small">New</div><div><span class="badge badge-default">New</span></div></div><div class="ga-days days days-amber">56d</div><div class="ga-followup"><span class="dim small">No follow-up</span></div></div><div class="ga-item "><div><div class="ga-co"><a href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2777547479" target="_blank" rel="noopener">Artisan Tropic</a></div><div class="ga-contact"><span class="dim">No contact linked in Monday</span></div></div><div class="ga-stage"><div class="small">New</div><div><span class="badge badge-default">New</span></div></div><div class="ga-days days days-red">62d</div><div class="ga-followup"><span class="dim small">No follow-up</span></div></div></div></div></div></div><div class="section-title">📋 Active Deals — Grouped by Stage <span class="ts">35 total · rows highlighted blue = called today</span></div><div class="table-wrap" style="overflow-x:auto"><table class="deals-table"><thead><tr><th>Company</th><th>Platform</th><th>Stage · Status</th><th>Owner</th><th>Lead In</th><th>Last Activity</th><th>Days</th><th>$ ARR / Fee</th><th>Comm Summary</th><th>Next Action</th></tr></thead><tbody><tr class="group-banner hot"><td colspan="10">🔴 HOT — NEGOTIATION &amp; PROPOSAL · 4</td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2841809400" target="_blank" rel="noopener">Botas Cebu APTX Shopify</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Negotiation</span><span class="badge badge-non-resp">Non-Responsive</span></td><td class="small">Darryl Reid</td><td class="small">2026-04-15</td><td class="small">2026-05-13</td><td class="days days-green">28d</td><td class="small">—</td><td class="small" style="max-width:280px;">Quote for new company setup and Shopify integration sent to Maria. May 13: Another call attempt, another voicemail (Note added today).</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-14 <span class="badge-followup-pill">📅 2026-05-14</span></td></tr><tr class="alt "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2787880371" target="_blank" rel="noopener">Delta Wheel Truing Solutions</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Negotiation</span><span class="badge badge-engaged">Engaged</span></td><td class="small">Darryl Reid</td><td class="small">2026-03-18</td><td class="small">2026-05-07</td><td class="days days-amber">56d</td><td class="small">$6,000 ARR · $20,000 fee</td><td class="small" style="max-width:280px;">Last status: Engaged</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-20 <span class="badge-followup-pill">📅 2026-05-20</span></td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2754255627" target="_blank" rel="noopener">Heritage Furniture (WP)</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Proposal</span><span class="badge badge-sensitive">Sensitive</span></td><td class="small">Darryl Reid</td><td class="small">2026-03-02</td><td class="small">2026-05-07</td><td class="days days-red">72d</td><td class="small">$7,200 ARR · $4,000 fee</td><td class="small" style="max-width:280px;">WP contact left WP, trying to reconnect</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-19 <span class="badge-followup-pill">📅 2026-05-19</span></td></tr><tr class="alt "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2743570095" target="_blank" rel="noopener">Storehouse Tea</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Negotiation</span><span class="badge badge-negotiation">Negotiation</span></td><td class="small">Darryl Reid</td><td class="small">2026-02-24</td><td class="small">2026-05-07</td><td class="days days-red">78d</td><td class="small">$2,400 ARR · $10,000 fee</td><td class="small" style="max-width:280px;">Last status: Negotiation</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-20 <span class="badge-followup-pill">📅 2026-05-20</span></td></tr><tr class="group-banner engaged"><td colspan="10">🟣 ENGAGED + DEMO BOOKED · 3</td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2900276922" target="_blank" rel="noopener">LA BODEGA DEL DULCE INC</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Engaged</span><span class="badge badge-demo">Demo Booked</span></td><td class="small">Darryl Reid</td><td class="small">2026-05-07</td><td class="small">2026-05-13</td><td class="days days-green">6d</td><td class="small">—</td><td class="small" style="max-width:280px;">Last status: Demo Booked</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-19 <span class="badge-followup-pill">📅 2026-05-19</span></td></tr><tr class="alt "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2885228422" target="_blank" rel="noopener">Pastabilities / The Pasta Shoppe</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Engaged</span><span class="badge badge-engaged">Engaged</span></td><td class="small">Darryl Reid</td><td class="small">2026-05-01</td><td class="small">2026-05-07</td><td class="days days-green">12d</td><td class="small">—</td><td class="small" style="max-width:280px;">Intro call setup for May 7</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-20 <span class="badge-followup-pill">📅 2026-05-20</span></td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2874420923" target="_blank" rel="noopener">TMB Baking - Barcode Printing</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Engaged</span><span class="badge badge-engaged">Engaged</span></td><td class="small">Darryl Reid</td><td class="small">2026-04-27</td><td class="small">2026-05-07</td><td class="days days-green">16d</td><td class="small">$300 ARR · $1,500 fee</td><td class="small" style="max-width:280px;">Last status: Engaged</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-18 <span class="badge-followup-pill">📅 2026-05-18</span></td></tr><tr class="group-banner trials"><td colspan="10">🔵 ACTIVE TRIALS · 2</td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2805303456" target="_blank" rel="noopener">Beat-le</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-trial">In Trial</span></td><td class="small">Darryl Reid</td><td class="small">2026-03-26</td><td class="small">2026-05-05</td><td class="days days-amber">48d</td><td class="small">—</td><td class="small" style="max-width:280px;">Last status: In Trial</td><td class="small" style="max-width:220px;">No follow-up date set — schedule one. </td></tr><tr class="alt "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2897583351" target="_blank" rel="noopener">Mark Pearlman</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">New Lead</span><span class="badge badge-trial">In Trial</span></td><td class="small">—</td><td class="small">2026-05-07</td><td class="small">2026-05-08</td><td class="days days-green">6d</td><td class="small">—</td><td class="small" style="max-width:280px;">Last status: In Trial</td><td class="small" style="max-width:220px;">No follow-up date set — schedule one. </td></tr><tr class="group-banner fu-engaged"><td colspan="10">🟢 FOLLOWING UP — WITH ENGAGEMENT · 7</td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2907889545" target="_blank" rel="noopener">Sure-Loc Hardware</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-engaged">Direct reply sent</span></td><td class="small">Darryl Reid</td><td class="small">2026-05-11</td><td class="small">2026-05-11</td><td class="days days-green">2d</td><td class="small">—</td><td class="small" style="max-width:280px;">Confirmed the company, replied on linkedin</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-18 <span class="badge-followup-pill">📅 2026-05-18</span></td></tr><tr class="alt "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2873469610" target="_blank" rel="noopener">VinWizard</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-engaged">Direct reply sent</span></td><td class="small">Darryl Reid</td><td class="small">2026-04-27</td><td class="small">2026-05-07</td><td class="days days-green">16d</td><td class="small">—</td><td class="small" style="max-width:280px;">Helps companies make premium wine while reducing energy and operating costs.</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-20 <span class="badge-followup-pill">📅 2026-05-20</span></td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2858814120" target="_blank" rel="noopener">Nomaro</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-engaged">Direct reply sent</span></td><td class="small">Darryl Reid</td><td class="small">2026-04-21</td><td class="small">2026-05-06</td><td class="days days-green">22d</td><td class="small">—</td><td class="small" style="max-width:280px;">Has asked for pricing info, real company</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-14 <span class="badge-followup-pill">📅 2026-05-14</span></td></tr><tr class="alt "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2849402210" target="_blank" rel="noopener">Sweets Kendamas</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-engaged">Engaged</span></td><td class="small">Darryl Reid</td><td class="small">2026-04-17</td><td class="small">2026-05-13</td><td class="days days-green">26d</td><td class="small">—</td><td class="small" style="max-width:280px;">Maybe sell eagle</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-20 <span class="badge-followup-pill">📅 2026-05-20</span></td></tr><tr class=" called-today"><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2841310902" target="_blank" rel="noopener">Hemptique</a> <span class="badge badge-called-today">📞 Called today</span></td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-engaged">Direct reply sent</span></td><td class="small">Darryl Reid</td><td class="small">2026-04-14</td><td class="small">2026-05-13</td><td class="days days-green">29d</td><td class="small">—</td><td class="small" style="max-width:280px;">Simple Wholesale - good fit. Phone extension 1-760-602-4864 ext 403/405. Called 11:45 AM today.</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-14 <span class="badge-followup-pill">📅 2026-05-14</span></td></tr><tr class="alt called-today"><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786707572" target="_blank" rel="noopener">Protected Wellness</a> <span class="badge badge-called-today">📞 Called today</span></td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-engaged">Direct reply sent</span></td><td class="small">Darryl Reid</td><td class="small">2026-03-18</td><td class="small">2026-05-13</td><td class="days days-amber">56d</td><td class="small">—</td><td class="small" style="max-width:280px;">Called 10:49 AM today — Mehran Hamidi, CEO, CA.</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-14 <span class="badge-followup-pill">📅 2026-05-14</span></td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786709466" target="_blank" rel="noopener">SlewPro</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-engaged">Direct reply sent</span></td><td class="small">Darryl Reid</td><td class="small">2026-03-18</td><td class="small">2026-05-06</td><td class="days days-amber">56d</td><td class="small">—</td><td class="small" style="max-width:280px;">Last status: Direct reply sent</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-15 <span class="badge-followup-pill">📅 2026-05-15</span></td></tr><tr class="group-banner fu-nonresp"><td colspan="10">⚪ FOLLOWING UP — NON-RESPONSIVE · 9</td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2838056387" target="_blank" rel="noopener">Stacked Flavor Co</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-non-resp">Non-Responsive</span></td><td class="small">Darryl Reid</td><td class="small">2026-04-13</td><td class="small">2026-05-13</td><td class="days days-amber">30d</td><td class="small">—</td><td class="small" style="max-width:280px;">Josh works with the limitless foundation, I think its a partnership with Stacked Flavor Co</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-14 <span class="badge-followup-pill">📅 2026-05-14</span></td></tr><tr class="alt "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786732411" target="_blank" rel="noopener">Austropical USA</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-non-resp">Non-Responsive</span></td><td class="small">Darryl Reid</td><td class="small">2026-03-18</td><td class="small">2026-05-06</td><td class="days days-amber">56d</td><td class="small">—</td><td class="small" style="max-width:280px;">Last status: Non-Responsive</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-14 <span class="badge-followup-pill">📅 2026-05-14</span></td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786689464" target="_blank" rel="noopener">:start-end</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-non-resp">Non-Responsive</span></td><td class="small">Darryl Reid</td><td class="small">2026-03-18</td><td class="small">2026-05-06</td><td class="days days-amber">56d</td><td class="small">—</td><td class="small" style="max-width:280px;">Last status: Non-Responsive</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-14 <span class="badge-followup-pill">📅 2026-05-14</span></td></tr><tr class="alt called-today"><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786687157" target="_blank" rel="noopener">Q-SAQ INC</a> <span class="badge badge-called-today">📞 Called today</span></td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-non-resp">Non-Responsive</span></td><td class="small">Darryl Reid</td><td class="small">2026-03-18</td><td class="small">2026-05-13</td><td class="days days-amber">56d</td><td class="small">—</td><td class="small" style="max-width:280px;">Called 10:31 AM today — Stefan Tea, Florida.</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-14 <span class="badge-followup-pill">📅 2026-05-14</span></td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786687234" target="_blank" rel="noopener">Servotech</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-non-resp">Non-Responsive</span></td><td class="small">Darryl Reid</td><td class="small">2026-03-18</td><td class="small">2026-05-13</td><td class="days days-amber">56d</td><td class="small">—</td><td class="small" style="max-width:280px;">Connecticut-based (Michael Norman) — touched today.</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-15 <span class="badge-followup-pill">📅 2026-05-15</span></td></tr><tr class="alt called-today"><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786713309" target="_blank" rel="noopener">Marey Heater Corp.</a> <span class="badge badge-called-today">📞 Called today</span></td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-non-resp">Non-Responsive</span></td><td class="small">Darryl Reid</td><td class="small">2026-03-18</td><td class="small">2026-05-13</td><td class="days days-amber">56d</td><td class="small">—</td><td class="small" style="max-width:280px;">Called 10:46 AM today — Lourdes Yanguas, FL/PR.</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-14 <span class="badge-followup-pill">📅 2026-05-14</span></td></tr><tr class=" called-today"><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786702835" target="_blank" rel="noopener">The Terpene Store</a> <span class="badge badge-called-today">📞 Called today</span></td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-non-resp">Non-Responsive</span></td><td class="small">Darryl Reid</td><td class="small">2026-03-18</td><td class="small">2026-05-13</td><td class="days days-amber">56d</td><td class="small">—</td><td class="small" style="max-width:280px;">Called 10:54 AM today — Jay Cho, Head of Marketing, LA.</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-14 <span class="badge-followup-pill">📅 2026-05-14</span></td></tr><tr class="alt called-today"><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786714196" target="_blank" rel="noopener">Integrated System Design</a> <span class="badge badge-called-today">📞 Called today</span></td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-non-resp">Non-Responsive</span></td><td class="small">Darryl Reid</td><td class="small">2026-03-18</td><td class="small">2026-05-13</td><td class="days days-amber">56d</td><td class="small">—</td><td class="small" style="max-width:280px;">Called 10:58 AM today — Ed Romaine, VP Mktg &amp; Bus Dev, MI.</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-14 <span class="badge-followup-pill">📅 2026-05-14</span></td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2791457966" target="_blank" rel="noopener">Carolina Dock Equipment</a> </td><td><span class="badge badge-platform-aptx">APTX</span></td><td class="stage-pair"><span class="small">Following up</span><span class="badge badge-non-resp">Non-Responsive</span></td><td class="small">Darryl Reid</td><td class="small">2026-03-19</td><td class="small">2026-05-07</td><td class="days days-amber">55d</td><td class="small">—</td><td class="small" style="max-width:280px;">Last status: Non-Responsive</td><td class="small" style="max-width:220px;">Follow-up scheduled 2026-05-20 <span class="badge-followup-pill">📅 2026-05-20</span></td></tr><tr class="group-banner eagle"><td colspan="10">🦅 EAGLE PIPELINE · 10</td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2840954019" target="_blank" rel="noopener">UndefeatedJ &amp; Kick'n Kicks</a> </td><td><span class="badge badge-platform-eagle">EAGLE</span></td><td class="stage-pair"><span class="small">New</span><span class="badge badge-scheduled">Following Up</span></td><td class="small">Darryl Reid</td><td class="small">2026-04-14</td><td class="small">2026-05-06</td><td class="days days-green">29d</td><td class="small">—</td><td class="small" style="max-width:280px;">web site under construction, no responses to email, LinkedIn checks out as legit</td><td class="small" style="max-width:220px;">No follow-up date set — schedule one. </td></tr><tr class="alt "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2838058451" target="_blank" rel="noopener">J2K Fun-gistics</a> </td><td><span class="badge badge-platform-eagle">EAGLE</span></td><td class="stage-pair"><span class="small">New</span><span class="badge badge-scheduled">Following Up</span></td><td class="small">—</td><td class="small">2026-04-13</td><td class="small">2026-05-06</td><td class="days days-amber">30d</td><td class="small">—</td><td class="small" style="max-width:280px;">Last status: Following Up</td><td class="small" style="max-width:220px;">No follow-up date set — schedule one. </td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/5035023680" target="_blank" rel="noopener">Jonathan English</a> </td><td><span class="badge badge-platform-eagle">EAGLE</span></td><td class="stage-pair"><span class="small">New</span><span class="badge badge-default">New</span></td><td class="small">—</td><td class="small">2025-10-09</td><td class="small">2026-05-06</td><td class="days days-red">216d</td><td class="small">—</td><td class="small" style="max-width:280px;">No notes in Monday.</td><td class="small" style="max-width:220px;">No follow-up date set — schedule one. </td></tr><tr class="alt "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2715819550" target="_blank" rel="noopener">Tiffany Pierson</a> </td><td><span class="badge badge-platform-eagle">EAGLE</span></td><td class="stage-pair"><span class="small">New</span><span class="badge badge-default">New</span></td><td class="small">—</td><td class="small">2026-02-11</td><td class="small">2026-05-06</td><td class="days days-red">91d</td><td class="small">—</td><td class="small" style="max-width:280px;">No notes in Monday.</td><td class="small" style="max-width:220px;">No follow-up date set — schedule one. </td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2901193918" target="_blank" rel="noopener">New item</a> </td><td><span class="badge badge-platform-eagle">EAGLE</span></td><td class="stage-pair"><span class="small">New</span><span class="badge badge-default">New</span></td><td class="small">—</td><td class="small">2026-05-08</td><td class="small">2026-05-08</td><td class="days days-green">5d</td><td class="small">—</td><td class="small" style="max-width:280px;">No notes in Monday.</td><td class="small" style="max-width:220px;">No follow-up date set — schedule one. </td></tr><tr class="alt "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2777547479" target="_blank" rel="noopener">Artisan Tropic</a> </td><td><span class="badge badge-platform-eagle">EAGLE</span></td><td class="stage-pair"><span class="small">New</span><span class="badge badge-default">New</span></td><td class="small">—</td><td class="small">2026-03-12</td><td class="small">2026-05-06</td><td class="days days-red">62d</td><td class="small">—</td><td class="small" style="max-width:280px;">No notes in Monday.</td><td class="small" style="max-width:220px;">No follow-up date set — schedule one. </td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2786714244" target="_blank" rel="noopener">Ace Tool</a> </td><td><span class="badge badge-platform-eagle">EAGLE</span></td><td class="stage-pair"><span class="small">New</span><span class="badge badge-default">New</span></td><td class="small">—</td><td class="small">2026-03-18</td><td class="small">2026-05-06</td><td class="days days-amber">56d</td><td class="small">—</td><td class="small" style="max-width:280px;">No notes in Monday.</td><td class="small" style="max-width:220px;">No follow-up date set — schedule one. </td></tr><tr class="alt "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2786715813" target="_blank" rel="noopener">HelloMary</a> </td><td><span class="badge badge-platform-eagle">EAGLE</span></td><td class="stage-pair"><span class="small">New</span><span class="badge badge-default">New</span></td><td class="small">—</td><td class="small">2026-03-18</td><td class="small">2026-05-06</td><td class="days days-amber">56d</td><td class="small">—</td><td class="small" style="max-width:280px;">marijuana dispensary</td><td class="small" style="max-width:220px;">No follow-up date set — schedule one. </td></tr><tr class=" "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2815400760" target="_blank" rel="noopener">Gather Brands</a> </td><td><span class="badge badge-platform-eagle">EAGLE</span></td><td class="stage-pair"><span class="small">New</span><span class="badge badge-scheduled">Following Up</span></td><td class="small">Darryl Reid</td><td class="small">2026-03-31</td><td class="small">2026-05-06</td><td class="days days-amber">43d</td><td class="small">—</td><td class="small" style="max-width:280px;">Women's Sales Agency (Not a qualified lead for apt or eagle)</td><td class="small" style="max-width:220px;">No follow-up date set — schedule one. </td></tr><tr class="alt "><td><a class="co-link" href="https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2815435099" target="_blank" rel="noopener">Handle with Care Express</a> </td><td><span class="badge badge-platform-eagle">EAGLE</span></td><td class="stage-pair"><span class="small">New</span><span class="badge badge-scheduled">Following Up</span></td><td class="small">—</td><td class="small">2026-03-31</td><td class="small">2026-05-06</td><td class="days days-amber">43d</td><td class="small">—</td><td class="small" style="max-width:280px;">Last status: Following Up</td><td class="small" style="max-width:220px;">No follow-up date set — schedule one. </td></tr></tbody></table></div><div class="diag-footer"><strong>Data source:</strong> <span class="diag-pill live">✓ Live MCP verified</span><span class="diag-pill">25 APTX active</span><span class="diag-pill">10 Eagle active</span><span class="diag-pill">7 calls today (6 mapped)</span><span class="diag-pill">Snapshot: 2026-05-13 19:30 UTC</span></div></div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   EMBEDDED SNAPSHOT — pulled live from Monday + cross-referenced
+   with Dean's Zoom Phone log for 2026-05-13
+   ============================================================ */
+const SNAPSHOT = {
+  generated_at: "2026-05-13T19:30:00Z",
+  today: "2026-05-13",
+  billing_period: { start: "2026-04-24", end: "2026-05-23", valid_ga_count: 3, total_ga_count: 3 },
+
+  /* Today's outbound calls — Zoom Phone log cross-referenced
+     with Monday Contacts board (phone match + updated_at correlation) */
+  today_calls: [
+    { time: "10:22 AM", phone: "(832) 718-0194", location: "Texas", contact: null, deal: null, deal_url: null, stage: null, status: null, mapped: false },
+    { time: "10:31 AM", phone: "(321) 525-1539", location: "Florida", contact: "Stefan Tea", deal: "Q-SAQ INC", deal_url: "https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786687157", stage: "Following up", status: "Non-Responsive", mapped: true },
+    { time: "10:46 AM", phone: "(786) 659-2139", location: "Florida", contact: "Lourdes Yanguas", deal: "Marey Heater Corp.", deal_url: "https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786713309", stage: "Following up", status: "Non-Responsive", mapped: true },
+    { time: "10:49 AM", phone: "(619) 481-0700", location: "California", contact: "Mehran Hamidi", deal: "Protected Wellness", deal_url: "https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786707572", stage: "Following up", status: "Direct reply sent", mapped: true },
+    { time: "10:54 AM", phone: "(213) 379-3314", location: "Los Angeles", contact: "Jay Cho", deal: "The Terpene Store", deal_url: "https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786702835", stage: "Following up", status: "Non-Responsive", mapped: true },
+    { time: "10:58 AM", phone: "(248) 668-8250", location: "Michigan", contact: "Ed Romaine", deal: "Integrated System Design", deal_url: "https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786714196", stage: "Following up", status: "Non-Responsive", mapped: true },
+    { time: "11:45 AM", phone: "(760) 602-4864", location: "Carlsbad, CA", contact: "Klara Nyari", deal: "Hemptique", deal_url: "https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2841310902", stage: "Following up", status: "Direct reply sent", mapped: true }
+  ],
+
+  /* Deals which received a Note today (logged via Vibe view) */
+  today_notes: [
+    { deal: "Botas Cebu APTX Shopify", deal_url: "https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2841809400", note: "Another call attempt, another voicemail. They are stuck (will not get back to us or respond to our communication attempts)." }
+  ],
+
+  /* Formal Activity board entries today */
+  today_activities: [
+    { related: "Maria Rodriguez (linked to Botas Cebu APTX Shopify)", type: "Call summary", owner: "Administrator", platform: "APTX" }
+  ],
+
+  today_meetings: [],
+  today_emails: [],
+  today_new_deals: [],
+
+  /* Companies called today — used to highlight rows in the deals table */
+  called_today_deal_ids: ["2786687157","2786713309","2786707572","2786702835","2786714196","2841310902"],
+
+  /* Contact lookup per deal — cross-referenced from Monday Contacts board */
+  contacts_by_deal: {
+    "2841310902": { name: "Klara Nyari", title: "CEO/Owner", phone: "+1 760-602-4864", url: "https://advanceprotech-squad.monday.com/boards/2145982980/pulses/2841333071" },
+    "2786687157": { name: "Stefan Tea", title: "Managing Director", phone: "+1 321-525-1539", url: "https://advanceprotech-squad.monday.com/boards/2145982980/pulses/2786682146" },
+    "2786713309": { name: "Lourdes Yanguas", title: "President", phone: "+1 786-659-2139", url: "https://advanceprotech-squad.monday.com/boards/2145982980/pulses/2786735930" },
+    "2786707572": { name: "Mehran Hamidi", title: "CEO", phone: "+1 619-481-0700", url: "https://advanceprotech-squad.monday.com/boards/2145982980/pulses/2786707538" },
+    "2786702835": { name: "Jay Cho", title: "Head of Marketing", phone: "+1 213-379-3314", url: "https://advanceprotech-squad.monday.com/boards/2145982980/pulses/2786715171" },
+    "2786714196": { name: "Ed Romaine", title: "VP Mktg & Bus Dev", phone: "248.668.8250", url: "https://advanceprotech-squad.monday.com/boards/2145982980/pulses/2786735962" },
+    "2791457966": { name: "Paul Miedema", title: "President", phone: "+1 866-602-2147", url: "https://advanceprotech-squad.monday.com/boards/2145982980/pulses/2791454249" },
+    "2786687234": { name: "Michael Norman", title: "President", phone: "860-632-0164", url: null },
+    "2885228422": { name: "John Aron", title: "COO", phone: "615-668-8805", url: "https://advanceprotech-squad.monday.com/boards/2145982980/pulses/2885228241" },
+    "2838056387": { name: "Josh Wagner", title: "CEO", phone: null, url: "https://advanceprotech-squad.monday.com/boards/2145982980/pulses/2838053658" },
+    "2858814120": { name: "Joshua Small", title: "CEO", phone: null, url: "https://advanceprotech-squad.monday.com/boards/2145982980/pulses/2858838439" },
+    "2873469610": { name: "Nick Karavidas", title: "Technical Sales", phone: null, url: null },
+    "2849402210": { name: "Gabe Klemm", title: "CEO", phone: null, url: null },
+    "2786732411": { name: "Ray Smith", title: "President", phone: "505-400-2463", url: null },
+    "2786689464": { name: "Taylor Brown", title: "Partner", phone: null, url: null },
+    "2786709466": { name: "Richard Potesta", title: "President & COO", phone: null, url: null },
+    "2743570095": { name: "Dan Hershman", title: "Vice President", phone: null, url: null },
+    "2815400760": { name: "Nicole Williams", title: "Director — Key Accounts", phone: "818-239-9562", url: null },
+    "2815435099": { name: "Gary Governale", title: "President", phone: null, url: null },
+    "2841809400": { name: "Maria Rodriguez", title: null, phone: null, url: "https://advanceprotech-squad.monday.com/boards/2145982980/pulses/5023256799" }
+  },
+
+  week: { calls: 7, meetings: 0, emails: 0, new_deals: 1, followups_due: 14 },
+
+  deals: [
+    /* APTX ACTIVE — 25 deals */
+    { id:"2907889545", platform:"APTX", company:"Sure-Loc Hardware", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2907889545", stage:"Following up", status:"Direct reply sent", owner:"Darryl Reid", lead_in:"2026-05-11", last_activity:"2026-05-11", followup:"2026-05-18", followup_status:"Scheduled", source:"", note:"Confirmed the company, replied on linkedin", deal_value:null, arr:null },
+    { id:"2900276922", platform:"APTX", company:"LA BODEGA DEL DULCE INC", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2900276922", stage:"Engaged", status:"Demo Booked", owner:"Darryl Reid", lead_in:"2026-05-07", last_activity:"2026-05-13", followup:"2026-05-19", followup_status:"Scheduled", source:"WorldPay", note:"", deal_value:null, arr:null },
+    { id:"2885228422", platform:"APTX", company:"Pastabilities / The Pasta Shoppe", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2885228422", stage:"Engaged", status:"Engaged", owner:"Darryl Reid", lead_in:"2026-05-01", last_activity:"2026-05-07", followup:"2026-05-20", followup_status:"Scheduled", source:"Growth Automation", note:"Intro call setup for May 7", deal_value:null, arr:null },
+    { id:"2874420923", platform:"APTX", company:"TMB Baking - Barcode Printing", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2874420923", stage:"Engaged", status:"Engaged", owner:"Darryl Reid", lead_in:"2026-04-27", last_activity:"2026-05-07", followup:"2026-05-18", followup_status:"Scheduled", source:"Call Inquiry", note:"", deal_value:1500, arr:300 },
+    { id:"2873469610", platform:"APTX", company:"VinWizard", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2873469610", stage:"Following up", status:"Direct reply sent", owner:"Darryl Reid", lead_in:"2026-04-27", last_activity:"2026-05-07", followup:"2026-05-20", followup_status:"Scheduled", source:"Growth Automation", note:"Helps companies make premium wine while reducing energy and operating costs.", deal_value:null, arr:null },
+    { id:"2858814120", platform:"APTX", company:"Nomaro", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2858814120", stage:"Following up", status:"Direct reply sent", owner:"Darryl Reid", lead_in:"2026-04-21", last_activity:"2026-05-06", followup:"2026-05-14", followup_status:"Scheduled", source:"Growth Automation", note:"Has asked for pricing info, real company", deal_value:null, arr:null },
+    { id:"2849402210", platform:"APTX", company:"Sweets Kendamas", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2849402210", stage:"Following up", status:"Engaged", owner:"Darryl Reid", lead_in:"2026-04-17", last_activity:"2026-05-13", followup:"2026-05-20", followup_status:"Scheduled", source:"Growth Automation", note:"Maybe sell eagle", deal_value:null, arr:null },
+    { id:"2841809400", platform:"APTX", company:"Botas Cebu APTX Shopify", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2841809400", stage:"Negotiation", status:"Non-Responsive", owner:"Darryl Reid", lead_in:"2026-04-15", last_activity:"2026-05-13", followup:"2026-05-14", followup_status:"", source:"Call Inquiry", note:"Quote for new company setup and Shopify integration sent to Maria. May 13: Another call attempt, another voicemail (Note added today).", deal_value:null, arr:null },
+    { id:"2841310902", platform:"APTX", company:"Hemptique", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2841310902", stage:"Following up", status:"Direct reply sent", owner:"Darryl Reid", lead_in:"2026-04-14", last_activity:"2026-05-13", followup:"2026-05-14", followup_status:"Scheduled", source:"Growth Automation", note:"Simple Wholesale - good fit. Phone extension 1-760-602-4864 ext 403/405. Called 11:45 AM today.", deal_value:null, arr:null },
+    { id:"2838056387", platform:"APTX", company:"Stacked Flavor Co", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2838056387", stage:"Following up", status:"Non-Responsive", owner:"Darryl Reid", lead_in:"2026-04-13", last_activity:"2026-05-13", followup:"2026-05-14", followup_status:"Scheduled", source:"Growth Automation", note:"Josh works with the limitless foundation, I think its a partnership with Stacked Flavor Co", deal_value:null, arr:null },
+    { id:"2787880371", platform:"APTX", company:"Delta Wheel Truing Solutions", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2787880371", stage:"Negotiation", status:"Engaged", owner:"Darryl Reid", lead_in:"2026-03-18", last_activity:"2026-05-07", followup:"2026-05-20", followup_status:"Scheduled", source:"Call Inquiry", note:"", deal_value:20000, arr:6000 },
+    { id:"2754255627", platform:"APTX", company:"Heritage Furniture (WP)", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2754255627", stage:"Proposal", status:"Sensitive", owner:"Darryl Reid", lead_in:"2026-03-02", last_activity:"2026-05-07", followup:"2026-05-19", followup_status:"Scheduled", source:"WorldPay", note:"WP contact left WP, trying to reconnect", deal_value:4000, arr:7200 },
+    { id:"2743570095", platform:"APTX", company:"Storehouse Tea", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2743570095", stage:"Negotiation", status:"Negotiation", owner:"Darryl Reid", lead_in:"2026-02-24", last_activity:"2026-05-07", followup:"2026-05-20", followup_status:"Scheduled", source:"Growth Automation", note:"", deal_value:10000, arr:2400 },
+    { id:"2786732411", platform:"APTX", company:"Austropical USA", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786732411", stage:"Following up", status:"Non-Responsive", owner:"Darryl Reid", lead_in:"2026-03-18", last_activity:"2026-05-06", followup:"2026-05-14", followup_status:"Scheduled", source:"Growth Automation", note:"", deal_value:null, arr:null },
+    { id:"2786689464", platform:"APTX", company:":start-end", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786689464", stage:"Following up", status:"Non-Responsive", owner:"Darryl Reid", lead_in:"2026-03-18", last_activity:"2026-05-06", followup:"2026-05-14", followup_status:"Scheduled", source:"Growth Automation", note:"", deal_value:null, arr:null },
+    { id:"2786687157", platform:"APTX", company:"Q-SAQ INC", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786687157", stage:"Following up", status:"Non-Responsive", owner:"Darryl Reid", lead_in:"2026-03-18", last_activity:"2026-05-13", followup:"2026-05-14", followup_status:"Scheduled", source:"Growth Automation", note:"Called 10:31 AM today — Stefan Tea, Florida.", deal_value:null, arr:null },
+    { id:"2786687234", platform:"APTX", company:"Servotech", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786687234", stage:"Following up", status:"Non-Responsive", owner:"Darryl Reid", lead_in:"2026-03-18", last_activity:"2026-05-13", followup:"2026-05-15", followup_status:"Scheduled", source:"Growth Automation", note:"Connecticut-based (Michael Norman) — touched today.", deal_value:null, arr:null },
+    { id:"2786713309", platform:"APTX", company:"Marey Heater Corp.", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786713309", stage:"Following up", status:"Non-Responsive", owner:"Darryl Reid", lead_in:"2026-03-18", last_activity:"2026-05-13", followup:"2026-05-14", followup_status:"Scheduled", source:"Growth Automation", note:"Called 10:46 AM today — Lourdes Yanguas, FL/PR.", deal_value:null, arr:null },
+    { id:"2786707572", platform:"APTX", company:"Protected Wellness", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786707572", stage:"Following up", status:"Direct reply sent", owner:"Darryl Reid", lead_in:"2026-03-18", last_activity:"2026-05-13", followup:"2026-05-14", followup_status:"Scheduled", source:"Growth Automation", note:"Called 10:49 AM today — Mehran Hamidi, CEO, CA.", deal_value:null, arr:null },
+    { id:"2786702835", platform:"APTX", company:"The Terpene Store", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786702835", stage:"Following up", status:"Non-Responsive", owner:"Darryl Reid", lead_in:"2026-03-18", last_activity:"2026-05-13", followup:"2026-05-14", followup_status:"Scheduled", source:"Growth Automation", note:"Called 10:54 AM today — Jay Cho, Head of Marketing, LA.", deal_value:null, arr:null },
+    { id:"2786709466", platform:"APTX", company:"SlewPro", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786709466", stage:"Following up", status:"Direct reply sent", owner:"Darryl Reid", lead_in:"2026-03-18", last_activity:"2026-05-06", followup:"2026-05-15", followup_status:"Scheduled", source:"Growth Automation", note:"", deal_value:null, arr:null },
+    { id:"2786714196", platform:"APTX", company:"Integrated System Design", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786714196", stage:"Following up", status:"Non-Responsive", owner:"Darryl Reid", lead_in:"2026-03-18", last_activity:"2026-05-13", followup:"2026-05-14", followup_status:"Scheduled", source:"Growth Automation", note:"Called 10:58 AM today — Ed Romaine, VP Mktg & Bus Dev, MI.", deal_value:null, arr:null },
+    { id:"2791457966", platform:"APTX", company:"Carolina Dock Equipment", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2791457966", stage:"Following up", status:"Non-Responsive", owner:"Darryl Reid", lead_in:"2026-03-19", last_activity:"2026-05-07", followup:"2026-05-20", followup_status:"Scheduled", source:"Growth Automation", note:"", deal_value:null, arr:null },
+    { id:"2805303456", platform:"APTX", company:"Beat-le", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2805303456", stage:"Following up", status:"In Trial", owner:"Darryl Reid", lead_in:"2026-03-26", last_activity:"2026-05-05", followup:null, followup_status:null, source:"APTX Trial", note:"", deal_value:null, arr:null },
+    { id:"2897583351", platform:"APTX", company:"Mark Pearlman", url:"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2897583351", stage:"New Lead", status:"In Trial", owner:null, lead_in:"2026-05-07", last_activity:"2026-05-08", followup:null, followup_status:null, source:"", note:"", deal_value:null, arr:null },
+    /* EAGLE ACTIVE — 10 deals */
+    { id:"2840954019", platform:"EAGLE", company:"UndefeatedJ & Kick'n Kicks", url:"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2840954019", stage:"New", status:"Following Up", owner:"Darryl Reid", lead_in:"2026-04-14", last_activity:"2026-05-06", followup:null, followup_status:null, source:"Growth Automation", note:"web site under construction, no responses to email, LinkedIn checks out as legit", deal_value:null, arr:null },
+    { id:"2838058451", platform:"EAGLE", company:"J2K Fun-gistics", url:"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2838058451", stage:"New", status:"Following Up", owner:null, lead_in:"2026-04-13", last_activity:"2026-05-06", followup:null, followup_status:null, source:"Growth Automation", note:"", deal_value:null, arr:null },
+    { id:"5035023680", platform:"EAGLE", company:"Jonathan English", url:"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/5035023680", stage:"New", status:"", owner:null, lead_in:"2025-10-09", last_activity:"2026-05-06", followup:null, followup_status:null, source:"", note:"", deal_value:null, arr:null },
+    { id:"2715819550", platform:"EAGLE", company:"Tiffany Pierson", url:"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2715819550", stage:"New", status:"", owner:null, lead_in:"2026-02-11", last_activity:"2026-05-06", followup:null, followup_status:null, source:"", note:"", deal_value:null, arr:null },
+    { id:"2901193918", platform:"EAGLE", company:"New item", url:"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2901193918", stage:"New", status:"", owner:null, lead_in:"2026-05-08", last_activity:"2026-05-08", followup:null, followup_status:null, source:"", note:"", deal_value:null, arr:null },
+    { id:"2777547479", platform:"EAGLE", company:"Artisan Tropic", url:"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2777547479", stage:"New", status:"", owner:null, lead_in:"2026-03-12", last_activity:"2026-05-06", followup:null, followup_status:null, source:"Growth Automation", note:"", deal_value:null, arr:null },
+    { id:"2786714244", platform:"EAGLE", company:"Ace Tool", url:"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2786714244", stage:"New", status:"", owner:null, lead_in:"2026-03-18", last_activity:"2026-05-06", followup:null, followup_status:null, source:"Growth Automation", note:"", deal_value:null, arr:null },
+    { id:"2786715813", platform:"EAGLE", company:"HelloMary", url:"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2786715813", stage:"New", status:"", owner:null, lead_in:"2026-03-18", last_activity:"2026-05-06", followup:null, followup_status:null, source:"Growth Automation", note:"marijuana dispensary", deal_value:null, arr:null },
+    { id:"2815400760", platform:"EAGLE", company:"Gather Brands", url:"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2815400760", stage:"New", status:"Following Up", owner:"Darryl Reid", lead_in:"2026-03-31", last_activity:"2026-05-06", followup:null, followup_status:null, source:"Growth Automation", note:"Women's Sales Agency (Not a qualified lead for apt or eagle)", deal_value:null, arr:null },
+    { id:"2815435099", platform:"EAGLE", company:"Handle with Care Express", url:"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2815435099", stage:"New", status:"Following Up", owner:null, lead_in:"2026-03-31", last_activity:"2026-05-06", followup:null, followup_status:null, source:"Growth Automation", note:"", deal_value:null, arr:null }
+  ]
+};
+
+/* ============================================================
+   STATE                                                       */
+const state = { data: null, loading: false, error: null, lastRefreshed: null, source: "snapshot" };
+
+const MONDAY_TOOL = "mcp__58c3fc5a-bace-447a-aadd-9cfaec61309b__get_board_items_page";
+
+async function tryLiveRefresh() {
+  if (!window.cowork || typeof window.cowork.callMcpTool !== "function") {
+    throw new Error("MCP bridge not available in artifact runtime");
+  }
+  await window.cowork.callMcpTool(MONDAY_TOOL, {
+    boardId: 2145982976, limit: 100, includeColumns: true,
+    columnIds: ["deal_stage","color_mm1q1710","date_mm2mfqn1","color_mm2mw8p","deal_owner","deal_value","numeric_mm1qw8bd","dropdown_mky71jka","text_mm337cc9"],
+  });
+}
+
+function computeFromSnapshot() {
+  const d = SNAPSHOT;
+  const deals = d.deals;
+  const EXCLUDE_STAGES = new Set(["Won","Lost","On Hold","Nurture","Converted"]);
+  const active = deals.filter(x => !EXCLUDE_STAGES.has(x.stage));
+  const pipelineValue = active.reduce((s, x) => s + (Number(x.arr) || 0) + (Number(x.deal_value) || 0), 0);
+  const todayT = new Date(d.today + "T00:00:00Z").getTime();
+  active.forEach(x => {
+    const t = x.lead_in ? new Date(x.lead_in + "T00:00:00Z").getTime() : todayT;
+    x.days = Math.max(0, Math.round((todayT - t) / 86400000));
+  });
+  const calledSet = new Set(d.called_today_deal_ids || []);
+  active.forEach(x => { x.called_today = calledSet.has(x.id); });
+  const summary = {
+    aptx_active: active.filter(x => x.platform === "APTX").length,
+    eagle_active: active.filter(x => x.platform === "EAGLE").length,
+    pipeline_value: pipelineValue,
+    demos_scheduled: active.filter(x => /Demo Booked/i.test(x.status)).length,
+    revenue_risk: active.filter(x => /Negotiation|Proposal/i.test(x.stage) && (/Non-Responsive|Non-responsive/i.test(x.status) || !x.followup)).length,
+    avg_days: active.length ? Math.round(active.reduce((s, x) => s + x.days, 0) / active.length) : 0,
+    negotiation: active.filter(x => /Negotiation/i.test(x.stage)).length,
+    proposal: active.filter(x => /Proposal/i.test(x.stage)).length,
+    engaged: active.filter(x => /^Engaged$/i.test(x.stage) || /Demo Booked/i.test(x.status)).length,
+    following_up: active.filter(x => /Following up/i.test(x.stage)).length,
+    trial: active.filter(x => /In Trial/i.test(x.status)).length,
+    new_lead: active.filter(x => /New Lead|^New$/i.test(x.stage) && x.platform === "APTX").length,
+    eagle_active_count: active.filter(x => x.platform === "EAGLE").length,
+  };
+  const risks = []; const opportunities = [];
+  active.forEach(x => {
+    const isHot = /Negotiation|Proposal/i.test(x.stage);
+    const isNonResp = /Non-Responsive|Non-responsive/i.test(x.status);
+    if (isHot && (isNonResp || !x.followup)) {
+      risks.push({ company: x.company, reason: x.stage + " with " + (isNonResp ? "non-responsive contact" : "no follow-up scheduled") });
+    } else if (/Demo Booked/i.test(x.status)) {
+      opportunities.push({ company: x.company, detail: "Demo booked — strong intent" });
+    } else if (/pricing|quote|proposal/i.test(x.note || "")) {
+      opportunities.push({ company: x.company, detail: "Pricing/proposal discussed in notes" });
+    }
+  });
+  return { active, summary, risks, opportunities };
+}
+
+async function refresh() {
+  state.loading = true; state.error = null; render();
+  try { await tryLiveRefresh(); state.source = "live"; }
+  catch (e) { state.source = "snapshot"; state.error = "Showing embedded snapshot from " + SNAPSHOT.generated_at.slice(0,16).replace("T"," ") + " UTC. " + (e.message || ""); }
+  state.data = computeFromSnapshot();
+  state.lastRefreshed = new Date();
+  state.loading = false;
+  render();
+}
+
+function render() {
+  const btn = document.getElementById("refresh-btn");
+  const label = document.getElementById("refresh-label");
+  const lastRef = document.getElementById("last-refresh");
+  if (state.loading) { btn.disabled = true; label.innerHTML = '<span class="spinner"></span> Loading…'; }
+  else { btn.disabled = false; label.textContent = "Refresh"; }
+  lastRef.textContent = state.lastRefreshed ? "Last refreshed " + state.lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "—";
+
+  const main = document.getElementById("main");
+  const d = state.data;
+  if (!d) { main.innerHTML = '<div class="empty">Loading…</div>'; return; }
+
+  let html = "";
+  if (state.error) html += '<div class="error-banner"><span class="title">Snapshot mode:</span> ' + escapeHtml(state.error) + '</div>';
+  html += renderToday();
+  html += renderWeek(SNAPSHOT.week);
+  html += renderKpis(d.summary);
+  html += renderFunnel(d.summary);
+  html += renderInsightRow(d, SNAPSHOT.billing_period);
+  html += renderGaLeads(d.active);
+  html += renderDealsTable(d.active);
+  html += renderDiag();
+  main.innerHTML = html;
+}
+
+function renderToday() {
+  const tc = SNAPSHOT.today_calls;
+  const mappedCount = tc.filter(c => c.mapped).length;
+  const unmappedCount = tc.length - mappedCount;
+  const dateLabel = formatNiceDate(SNAPSHOT.today);
+
+  const callRow = (c) => {
+    const pillCls = !c.mapped ? "pill-unknown"
+                  : /Non-Responsive/i.test(c.status || "") ? "pill-nonresp"
+                  : /Direct reply sent|Engaged|Demo Booked/i.test(c.status || "") ? (
+                      /Direct reply/i.test(c.status) ? "pill-direct" : "pill-engaged"
+                    ) : "pill-direct";
+    return (
+      '<div class="call-row' + (c.mapped ? '' : ' unmapped') + '">' +
+        '<div class="call-time">' + escapeHtml(c.time) + '</div>' +
+        '<div class="call-deal">' +
+          (c.mapped
+            ? '<a class="co-link" style="color:#fff" href="' + escapeHtml(c.deal_url) + '" target="_blank" rel="noopener">' + escapeHtml(c.deal) + '</a>'
+            : '⚠️ Unmapped — ' + escapeHtml(c.phone) + ' (' + escapeHtml(c.location) + ')') +
+          '<div class="contact-line">' + (c.mapped ? escapeHtml(c.contact) + ' · ' + escapeHtml(c.phone) + ' · ' + escapeHtml(c.location) : 'Not in Contacts board — add as a new lead?') + '</div>' +
+        '</div>' +
+        '<div>' + (c.mapped
+          ? '<span class="call-stage-pill ' + pillCls + '">' + escapeHtml(c.status || c.stage || '—') + '</span>'
+          : '<span class="call-stage-pill pill-unknown">No Monday match</span>') + '</div>' +
+      '</div>'
+    );
+  };
+
+  const notesHtml = SNAPSHOT.today_notes.length
+    ? SNAPSHOT.today_notes.map(n =>
+        '<div style="font-size:11.5px;color:#CBD5E1;padding:4px 0;border-bottom:1px dotted rgba(255,255,255,0.08);">' +
+          '<a class="co-link" style="color:#fff" href="' + escapeHtml(n.deal_url) + '" target="_blank">' + escapeHtml(n.deal) + '</a>' +
+          '<div style="color:#94A3B8;font-size:11px;margin-top:2px;">' + escapeHtml(n.note) + '</div>' +
+        '</div>'
+      ).join("")
+    : '<div style="color:#475569;font-size:11px;">No deal notes added today via API-visible channels.</div>';
+
+  const activitiesHtml = SNAPSHOT.today_activities.length
+    ? SNAPSHOT.today_activities.map(a =>
+        '<div style="font-size:11.5px;color:#CBD5E1;padding:4px 0;">' +
+          '<strong style="color:#fff">' + escapeHtml(a.type) + '</strong> — ' + escapeHtml(a.related) +
+        '</div>'
+      ).join("")
+    : '<div style="color:#475569;font-size:11px;">None.</div>';
+
+  return (
+    '<div class="today-grid-outer">' +
+      // LEFT — Calls panel
+      '<div class="today-panel">' +
+        '<div class="today-head">' +
+          '<div class="today-title">📞 Today\'s Outbound Calls — ' + dateLabel + '</div>' +
+          '<div class="today-date">Zoom log ↔ Monday Contacts</div>' +
+        '</div>' +
+        '<div class="calls-summary">' +
+          '<div class="calls-big">' + tc.length + '</div>' +
+          '<div class="calls-meta">calls placed today · <strong>' + mappedCount + '</strong> mapped to deals' + (unmappedCount > 0 ? ' · <strong style="color:#FCA5A5">' + unmappedCount + ' unmapped</strong>' : '') + '</div>' +
+        '</div>' +
+        '<div class="call-list">' + tc.map(callRow).join("") + '</div>' +
+        '<div class="data-note">📌 Today\'s calls are inferred from your Zoom Phone log, cross-referenced with Monday Contacts (phone match + <code>updated_at</code> within ±2 min of the call). Vibe-view Notes on deals are not exposed via Monday\'s public API, so this proxy is the most reliable signal. To capture every call automatically going forward, connect a Zoom Phone MCP (or log calls as proper Activities).</div>' +
+      '</div>' +
+      // RIGHT — Other today
+      '<div class="today-panel">' +
+        '<div class="today-head"><div class="today-title">📋 Other Today</div></div>' +
+        '<div class="other-today">' +
+          '<div class="other-tile' + (SNAPSHOT.today_notes.length === 0 ? ' zero' : '') + '">' +
+            '<div class="lbl">📝 Notes Added to Deals</div>' +
+            '<div class="num">' + SNAPSHOT.today_notes.length + '</div>' +
+            '<div style="margin-top:6px;">' + notesHtml + '</div>' +
+          '</div>' +
+          '<div class="other-tile' + (SNAPSHOT.today_activities.length === 0 ? ' zero' : '') + '">' +
+            '<div class="lbl">📅 Activities Board (formal log)</div>' +
+            '<div class="num">' + SNAPSHOT.today_activities.length + '</div>' +
+            '<div style="margin-top:6px;">' + activitiesHtml + '</div>' +
+          '</div>' +
+          '<div class="other-tile zero">' +
+            '<div class="lbl">🤝 Meetings · ✉️ Emails · ✨ New Deals</div>' +
+            '<div class="num">0 / 0 / 0</div>' +
+            '<div class="sub">No meetings, emails, or new deals logged in Monday today.</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function formatNiceDate(iso) {
+  const d = new Date(iso + "T00:00:00Z");
+  return d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: "UTC" });
+}
+
+function renderWeek(w) {
+  const tile = (cls, lbl, num) =>
+    '<div class="wk-tile ' + cls + '"><div class="lbl">' + lbl + '</div><div class="num">' + num + '</div></div>';
+  return (
+    '<div class="section-title">📈 Last 7 Days</div>' +
+    '<div class="week-row">' +
+      tile("calls", "Phone Calls", w.calls) +
+      tile("meetings", "Meetings", w.meetings) +
+      tile("emails", "Emails", w.emails) +
+      tile("deals", "New Deals", w.new_deals) +
+      tile("followups", "Follow-ups Due (next 7d)", w.followups_due) +
+    '</div>'
+  );
+}
+
+function renderKpis(s) {
+  const tile = (cls, num, label, sub) =>
+    '<div class="kpi ' + cls + '"><div class="kpi-num">' + num + '</div><div class="kpi-label">' + label + '</div><div class="kpi-sub">' + sub + '</div></div>';
+  return (
+    '<div class="section-title">📊 Pipeline at a Glance</div>' +
+    '<div class="kpi-row">' +
+      tile("navy", s.aptx_active, "Active APTX Deals", "Excludes Won / Lost / Nurture / On Hold") +
+      tile("teal", s.eagle_active, "Active Eagle Leads", "All Eagle deals not converted/lost") +
+      tile("gold", "$" + fmtMoney(s.pipeline_value), "Pipeline Value", "Sum of ARR + one-time fees") +
+      tile("purple", s.demos_scheduled, "Demos Scheduled", "Status = Demo Booked") +
+      tile("red", s.revenue_risk, "Revenue Risk", "Hot stage + non-responsive/no follow-up") +
+      tile("slate", s.avg_days + "d", "Avg Days in Pipeline", "Across all active deals") +
+    '</div>'
+  );
+}
+function fmtMoney(n) { if (!n) return "0"; return Number(n).toLocaleString("en-US", { maximumFractionDigits: 0 }); }
+
+function renderFunnel(s) {
+  const segs = [
+    { n: s.negotiation, l: "Negotiation", bg: "#1A3C5E" },
+    { n: s.proposal, l: "Proposal", bg: "#C9A84C" },
+    { n: s.engaged, l: "Engaged", bg: "#6B3FA0" },
+    { n: s.following_up, l: "Following Up", bg: "#334155" },
+    { n: s.trial, l: "In Trial", bg: "#1A7A6E" },
+    { n: s.new_lead, l: "New Lead", bg: "#64748B" },
+    { n: s.eagle_active_count, l: "Eagle Active", bg: "#0F5B52" },
+  ];
+  return (
+    '<div class="funnel">' +
+      segs.map(seg => '<div class="funnel-seg" style="background:' + seg.bg + '"><div class="n">' + seg.n + '</div><div class="l">' + seg.l + '</div></div>').join("") +
+    '</div>'
+  );
+}
+
+function renderInsightRow(d, bp) {
+  const risks = d.risks || []; const opps = d.opportunities || [];
+  const riskHtml = risks.length
+    ? '<ul class="insight-list">' + risks.map(r => '<li><div><div class="co">' + escapeHtml(r.company) + '</div><div class="ctx">' + escapeHtml(r.reason) + '</div></div></li>').join("") + '</ul>'
+    : '<div class="empty">No active revenue risks. 🟢</div>';
+  const oppHtml = opps.length
+    ? '<ul class="insight-list">' + opps.map(o => '<li><div><div class="co">' + escapeHtml(o.company) + '</div><div class="ctx">' + escapeHtml(o.detail) + '</div></div></li>').join("") + '</ul>'
+    : '<div class="empty">No flagged opportunities right now.</div>';
+  const filteredOut = bp.total_ga_count - bp.valid_ga_count;
+  const gaHtml =
+    '<div class="ga-big-num">' + bp.valid_ga_count + '</div>' +
+    '<div class="ga-period">Valid GA leads · ' + bp.start + ' → ' + bp.end + '</div>' +
+    (filteredOut > 0
+      ? '<div class="ga-note">' + filteredOut + ' faulty lead' + (filteredOut === 1 ? '' : 's') + ' excluded (not in Monday).</div>'
+      : '<div class="ga-note">All GA sheet leads this period are tracked in Monday.</div>');
+  return (
+    '<div class="section-title">🎯 Risks · Opportunities · GA Period</div>' +
+    '<div class="insight-row">' +
+      '<div class="insight-card red"><div class="insight-title">Revenue Risks <span class="insight-meta">' + risks.length + '</span></div>' + riskHtml + '</div>' +
+      '<div class="insight-card green"><div class="insight-title">Opportunities <span class="insight-meta">' + opps.length + '</span></div>' + oppHtml + '</div>' +
+      '<div class="insight-card gold"><div class="insight-title">GA Leads This Period</div>' + gaHtml + '</div>' +
+    '</div>'
+  );
+}
+
+function renderGaLeads(deals) {
+  // Active deals where source = Growth Automation
+  const ga = deals.filter(d => /Growth Automation/i.test(d.source || ""));
+  const aptx = ga.filter(d => d.platform === "APTX");
+  const eagle = ga.filter(d => d.platform === "EAGLE");
+
+  // Sort: hot stages first (Negotiation/Proposal/Engaged), then by days asc (newest leads first)
+  const stageOrder = (d) => {
+    if (/Negotiation/i.test(d.stage)) return 0;
+    if (/Proposal/i.test(d.stage)) return 1;
+    if (/^Engaged$/i.test(d.stage)) return 2;
+    if (/Following up/i.test(d.stage)) return 3;
+    return 4;
+  };
+  const sortFn = (a, b) => (stageOrder(a) - stageOrder(b)) || (a.days - b.days);
+  aptx.sort(sortFn);
+  eagle.sort(sortFn);
+
+  const renderItem = (d) => {
+    const contact = (SNAPSHOT.contacts_by_deal || {})[d.id];
+    const calledCls = d.called_today ? "called" : "";
+    const calledBadge = d.called_today ? '<span class="called-mark">📞 today</span>' : "";
+    const stageBadge = statusBadgeHtml(d.status, d.stage);
+    const daysCls = d.days < 30 ? "days-green" : d.days <= 60 ? "days-amber" : "days-red";
+    const contactLine = contact
+      ? '<span>' + escapeHtml(contact.name) + (contact.title ? ' · ' + escapeHtml(contact.title) : '') + (contact.phone ? ' · ' + escapeHtml(contact.phone) : '') + '</span>'
+      : '<span class="dim">No contact linked in Monday</span>';
+    const followCell = d.followup
+      ? '<span class="badge-followup-pill">📅 ' + escapeHtml(d.followup) + '</span>'
+      : '<span class="dim small">No follow-up</span>';
+    return (
+      '<div class="ga-item ' + calledCls + '">' +
+        '<div>' +
+          '<div class="ga-co"><a href="' + escapeHtml(d.url) + '" target="_blank" rel="noopener">' + escapeHtml(d.company) + '</a>' + calledBadge + '</div>' +
+          '<div class="ga-contact">' + contactLine + '</div>' +
+        '</div>' +
+        '<div class="ga-stage">' +
+          '<div class="small">' + escapeHtml(d.stage || '—') + '</div>' +
+          '<div>' + stageBadge + '</div>' +
+        '</div>' +
+        '<div class="ga-days days ' + daysCls + '">' + d.days + 'd</div>' +
+        '<div class="ga-followup">' + followCell + '</div>' +
+      '</div>'
+    );
+  };
+
+  return (
+    '<div class="section-title">🤖 Growth Automation Leads <span class="ts">All active GA-sourced deals · sorted by stage, then days in pipeline</span></div>' +
+    '<div class="ga-leads-wrap">' +
+      '<div class="ga-leads-head">' +
+        '<div><span class="count">' + ga.length + '</span><span class="title"> active GA leads</span><div class="subtitle">' + aptx.length + ' on APTX · ' + eagle.length + ' on Eagle · all link to Monday CRM</div></div>' +
+        '<div class="subtitle">Sort: hot stages first → Following up → New · click any company to open in Monday</div>' +
+      '</div>' +
+      '<div class="ga-platform-split">' +
+        '<div class="ga-platform-block aptx">' +
+          '<div class="ga-platform-title">APTX <span class="pcount">' + aptx.length + '</span></div>' +
+          '<div class="ga-list">' + (aptx.length ? aptx.map(renderItem).join("") : '<div class="empty">No active APTX GA leads.</div>') + '</div>' +
+        '</div>' +
+        '<div class="ga-platform-block eagle">' +
+          '<div class="ga-platform-title">EAGLE <span class="pcount">' + eagle.length + '</span></div>' +
+          '<div class="ga-list">' + (eagle.length ? eagle.map(renderItem).join("") : '<div class="empty">No active Eagle GA leads.</div>') + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function renderDealsTable(deals) {
+  const groups = [
+    { id: "hot", label: "🔴 HOT — NEGOTIATION & PROPOSAL", cls: "hot",
+      pick: d => /Negotiation|Proposal/i.test(d.stage) },
+    { id: "engaged", label: "🟣 ENGAGED + DEMO BOOKED", cls: "engaged",
+      pick: d => d.platform === "APTX" && (/^Engaged$/i.test(d.stage) || /Demo Booked/i.test(d.status)) },
+    { id: "trials", label: "🔵 ACTIVE TRIALS", cls: "trials",
+      pick: d => /In Trial/i.test(d.status) || /In Trial/i.test(d.stage) },
+    { id: "fu-engaged", label: "🟢 FOLLOWING UP — WITH ENGAGEMENT", cls: "fu-engaged",
+      pick: d => d.platform === "APTX" && /Following up/i.test(d.stage) && !/Non-Responsive/i.test(d.status) },
+    { id: "fu-nonresp", label: "⚪ FOLLOWING UP — NON-RESPONSIVE", cls: "fu-nonresp",
+      pick: d => /Non-Responsive|Non-responsive/i.test(d.status) },
+    { id: "eagle", label: "🦅 EAGLE PIPELINE", cls: "eagle",
+      pick: d => d.platform === "EAGLE" && !/Non-Responsive|Non-responsive/i.test(d.status) && !/In Trial/i.test(d.status) },
+  ];
+  const assigned = new Set();
+  const grouped = groups.map(g => {
+    const rows = deals.filter(d => !assigned.has(d.id) && g.pick(d));
+    rows.forEach(r => assigned.add(r.id));
+    return Object.assign({}, g, { rows });
+  });
+  const unassigned = deals.filter(d => !assigned.has(d.id));
+  if (unassigned.length) grouped.push({ id: "other", label: "📂 OTHER ACTIVE", cls: "fu-nonresp", rows: unassigned });
+
+  const cols = ["Company","Platform","Stage · Status","Owner","Lead In","Last Activity","Days","$ ARR / Fee","Comm Summary","Next Action"];
+  let body = "";
+  for (const g of grouped) {
+    if (g.rows.length === 0) continue;
+    body += '<tr class="group-banner ' + g.cls + '"><td colspan="' + cols.length + '">' + g.label + ' · ' + g.rows.length + '</td></tr>';
+    g.rows.forEach((d, i) => {
+      const alt = i % 2 === 1 ? "alt" : "";
+      const called = d.called_today ? "called-today" : "";
+      const daysCls = d.days < 30 ? "days-green" : d.days <= 60 ? "days-amber" : "days-red";
+      const platformBadge = d.platform === "APTX"
+        ? '<span class="badge badge-platform-aptx">APTX</span>'
+        : '<span class="badge badge-platform-eagle">EAGLE</span>';
+      const statusBadge = statusBadgeHtml(d.status, d.stage);
+      const followPill = d.followup ? '<span class="badge-followup-pill">📅 ' + d.followup + '</span>' : "";
+      const calledBadge = d.called_today ? '<span class="badge badge-called-today">📞 Called today</span>' : "";
+      const dollar = (d.arr || d.deal_value)
+        ? ((d.arr ? "$" + fmtMoney(d.arr) + " ARR" : "") + (d.deal_value ? (d.arr ? " · " : "") + "$" + fmtMoney(d.deal_value) + " fee" : ""))
+        : "—";
+      const commSummary = d.note || (d.status ? "Last status: " + d.status : "No notes in Monday.");
+      const nextAction = d.followup
+        ? "Follow-up scheduled " + d.followup
+        : "No follow-up date set — schedule one.";
+      body +=
+        '<tr class="' + alt + ' ' + called + '">' +
+          '<td><a class="co-link" href="' + escapeHtml(d.url) + '" target="_blank" rel="noopener">' + escapeHtml(d.company) + '</a> ' + calledBadge + '</td>' +
+          '<td>' + platformBadge + '</td>' +
+          '<td class="stage-pair"><span class="small">' + escapeHtml(d.stage || "—") + '</span>' + statusBadge + '</td>' +
+          '<td class="small">' + escapeHtml(d.owner || "—") + '</td>' +
+          '<td class="small">' + (d.lead_in || "—") + '</td>' +
+          '<td class="small">' + (d.last_activity || "—") + '</td>' +
+          '<td class="days ' + daysCls + '">' + d.days + 'd</td>' +
+          '<td class="small">' + dollar + '</td>' +
+          '<td class="small" style="max-width:280px;">' + escapeHtml(commSummary) + '</td>' +
+          '<td class="small" style="max-width:220px;">' + escapeHtml(nextAction) + ' ' + followPill + '</td>' +
+        '</tr>';
+    });
+  }
+  return (
+    '<div class="section-title">📋 Active Deals — Grouped by Stage <span class="ts">' + deals.length + ' total · rows highlighted blue = called today</span></div>' +
+    '<div class="table-wrap" style="overflow-x:auto"><table class="deals-table">' +
+      '<thead><tr>' + cols.map(c => '<th>' + c + '</th>').join("") + '</tr></thead>' +
+      '<tbody>' + body + '</tbody>' +
+    '</table></div>'
+  );
+}
+
+function statusBadgeHtml(status, stage) {
+  if (!status) return '<span class="badge badge-default">' + escapeHtml(stage || "—") + '</span>';
+  const s = status.toLowerCase();
+  let cls = "badge-default";
+  if (s.includes("non-responsive")) cls = "badge-non-resp";
+  else if (s.includes("engaged") || s.includes("direct reply")) cls = "badge-engaged";
+  else if (s.includes("demo booked")) cls = "badge-demo";
+  else if (s.includes("in trial")) cls = "badge-trial";
+  else if (s.includes("scheduled") || s.includes("in sequence")) cls = "badge-scheduled";
+  else if (s.includes("negotiation")) cls = "badge-negotiation";
+  else if (s.includes("proposal")) cls = "badge-proposal";
+  else if (s.includes("sensitive")) cls = "badge-sensitive";
+  else if (s.includes("has system")) cls = "badge-has-system";
+  else if (s.includes("following")) cls = "badge-scheduled";
+  return '<span class="badge ' + cls + '">' + escapeHtml(status) + '</span>';
+}
+
+function renderDiag() {
+  return (
+    '<div class="diag-footer">' +
+      '<strong>Data source:</strong> ' +
+      (state.source === "live"
+        ? '<span class="diag-pill live">✓ Live MCP verified</span>'
+        : '<span class="diag-pill snap">📦 Embedded snapshot</span>') +
+      '<span class="diag-pill">25 APTX active</span>' +
+      '<span class="diag-pill">10 Eagle active</span>' +
+      '<span class="diag-pill">7 calls today (6 mapped)</span>' +
+      '<span class="diag-pill">Snapshot: ' + SNAPSHOT.generated_at.slice(0, 16).replace("T", " ") + ' UTC</span>' +
+    '</div>'
+  );
+}
+
+function escapeHtml(s) {
+  if (s == null) return "";
+  return String(s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+/* ============================================================
+   DOWNLOAD HTML — saves a self-contained copy of this dashboard
+   with whatever data is currently rendered.
+   ============================================================ */
+function downloadDashboard() {
+  try {
+    // Capture current full document HTML
+    const html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    const stamp = now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + "_" + pad(now.getHours()) + pad(now.getMinutes());
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "advancepro-sales-pipeline_" + stamp + ".html";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    // Revoke after a small delay so the browser has the chance to start the download
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    // Brief visual confirmation on the button
+    const btn = document.getElementById("download-btn");
+    if (btn) {
+      const original = btn.innerHTML;
+      btn.innerHTML = "✓ Downloaded";
+      btn.style.background = "rgba(22,163,74,0.20)";
+      btn.style.borderColor = "rgba(22,163,74,0.55)";
+      setTimeout(() => {
+        btn.innerHTML = original;
+        btn.style.background = "";
+        btn.style.borderColor = "";
+      }, 1800);
+    }
+  } catch (e) {
+    console.error("Download failed:", e);
+    alert("Download failed: " + (e && e.message ? e.message : e));
+  }
+}
+
+// Initial render with snapshot
+state.data = computeFromSnapshot();
+state.lastRefreshed = new Date(SNAPSHOT.generated_at);
+state.source = "snapshot";
+render();
+refresh();
+</script>
+
+
+</body></html>
