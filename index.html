@@ -1,19 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><script type="application/json" id="cowork-artifact-meta">
-{
-  "name": "Sales Pipeline Report",
-  "schemaVersion": 1,
-  "description": "Live AdvancePro sales pipeline report. Pulls fresh data from Monday APTX (2145982976) and Eagle (2152071345) boards on every open. Today tab: activity log, due-today, stat tiles, week preview, open-items chips. Full Pipeline tab: KPIs, funnel, risks/opportunities, sectioned deal tables.",
-  "mcpTools": [
-    "mcp__58c3fc5a-bace-447a-aadd-9cfaec61309b__all_monday_api"
-  ],
-  "mcpServerNames": [
-    "monday.com"
-  ]
-}
-</script>
-
-
+<html lang="en"><head>
 <meta charset="utf-8">
 <title>AdvancePro Sales Pipeline</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,6 +25,8 @@ a:hover{text-decoration:underline}
 .topbar h1{font-size:18px;font-weight:700;letter-spacing:.2px}
 .topbar .badges{display:flex;gap:6px}
 .topbar .badge{background:rgba(255,255,255,.12);padding:3px 8px;border-radius:4px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.topbar .badge.live{background:#1A7A3E;color:#fff}
+.topbar .badge.snap{background:var(--gold);color:#3D2E0E}
 .topbar-r{font-size:11px;opacity:.75;font-family:'DM Mono'}
 .topbar-right{display:flex;align-items:center;gap:12px}
 .view-code-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#fff;font-family:inherit;font-size:10.5px;font-weight:700;padding:6px 12px;border-radius:5px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:.15s;display:inline-flex;align-items:center;gap:5px}
@@ -262,7 +250,7 @@ a:hover{text-decoration:underline}
   <div class="topbar-l">
     <h1>AdvancePro Sales Pipeline</h1>
     <div class="badges">
-      <span class="badge">Live</span>
+      <span class="badge live" id="mode-badge">Live</span>
       <span class="badge">Monday CRM</span>
     </div>
   </div>
@@ -312,7 +300,17 @@ a:hover{text-decoration:underline}
   </div>
 </div>
 
+<script type="application/json" id="snapshot-data">[{"id":"2940269512","name":"ProAxle","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2940269512","board":"aptx","createdAt":"2026-05-25T16:30:09Z","updatedAt":"2026-05-25T16:31:14Z","stage":"Proposal","substatus":"Engaged","followDate":"2026-05-28","followStatus":"Scheduled","owner":"Darryl Reid","value":20000,"arr":5100,"source":"","notes":"","closeDate":""},{"id":"2933306726","name":"Cosmo's Superior Food","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2933306726","board":"aptx","createdAt":"2026-05-21T15:13:06Z","updatedAt":"2026-05-27T20:51:32Z","stage":"New Lead","substatus":"Direct reply sent","followDate":"2026-05-28","followStatus":"Dean Call","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2927294645","name":"Smith Storage Systems","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2927294645","board":"aptx","createdAt":"2026-05-19T14:49:20Z","updatedAt":"2026-05-27T20:51:59Z","stage":"Following up","substatus":"Direct reply sent","followDate":"2026-05-28","followStatus":"Dean Call","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2916581423","name":"Koko & Karma","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2916581423","board":"aptx","createdAt":"2026-05-14T14:44:15Z","updatedAt":"2026-05-27T20:55:12Z","stage":"Following up","substatus":"Direct reply sent","followDate":"2026-05-28","followStatus":"Dean Call","owner":"Administrator","value":0,"arr":0,"source":"","notes":"","closeDate":""},{"id":"2907889545","name":"Sure-Loc Hardware","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2907889545","board":"aptx","createdAt":"2026-05-11T17:49:58Z","updatedAt":"2026-05-27T20:55:53Z","stage":"Following up","substatus":"Direct reply sent","followDate":"2026-05-28","followStatus":"Dean Call","owner":"Administrator","value":0,"arr":0,"source":"","notes":"Confirmed the company, replied on linkedin","closeDate":""},{"id":"2900276922","name":"LA BODEGA DEL DULCE INC","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2900276922","board":"aptx","createdAt":"2026-05-07T20:04:20Z","updatedAt":"2026-05-27T13:00:12Z","stage":"Proposal","substatus":"Proposal Sent","followDate":"2026-05-26","followStatus":"Over Due","owner":"Darryl Reid","value":5000,"arr":3120,"source":"WorldPay","notes":"","closeDate":""},{"id":"2885228422","name":"Pastabilities / The Pasta Shoppe","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2885228422","board":"aptx","createdAt":"2026-05-01T18:23:31Z","updatedAt":"2026-05-21T13:00:10Z","stage":"Engaged","substatus":"Engaged","followDate":"2026-05-20","followStatus":"Over Due","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"Intro call setup for May 7","closeDate":""},{"id":"2874420923","name":"TMB Baking - Barcode Printing","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2874420923","board":"aptx","createdAt":"2026-04-27T18:44:38Z","updatedAt":"2026-05-26T13:00:11Z","stage":"Engaged","substatus":"Engaged","followDate":"2026-05-25","followStatus":"Over Due","owner":"Darryl Reid","value":1500,"arr":300,"source":"Call Inquiry","notes":"","closeDate":""},{"id":"2873469610","name":"VinWizard","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2873469610","board":"aptx","createdAt":"2026-04-27T12:56:59Z","updatedAt":"2026-05-21T13:00:09Z","stage":"Following up","substatus":"Direct reply sent","followDate":"2026-05-20","followStatus":"Over Due","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"Helps companies make premium wine while reducing energy and operating costs.","closeDate":""},{"id":"2849402210","name":"Sweets Kendamas","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2849402210","board":"aptx","createdAt":"2026-04-17T13:20:07Z","updatedAt":"2026-05-21T13:00:09Z","stage":"Following up","substatus":"Engaged","followDate":"2026-05-20","followStatus":"Over Due","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"Maybe sell eagle","closeDate":""},{"id":"2841310902","name":"Hemptique","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2841310902","board":"aptx","createdAt":"2026-04-14T17:45:10Z","updatedAt":"2026-05-25T17:50:42Z","stage":"Engaged","substatus":"Non-Responsive","followDate":"2026-06-09","followStatus":"Over Due","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"Simple Wholesale - good fit (If we cant get through use the phone extension; 1-760-602-4864. ext. 403 and 405","closeDate":""},{"id":"2787880371","name":"Delta Wheel Truing Solutions","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2787880371","board":"aptx","createdAt":"2026-03-18T12:41:44Z","updatedAt":"2026-05-25T17:38:06Z","stage":"Negotiation","substatus":"Non-Responsive","followDate":"2026-06-02","followStatus":"Scheduled","owner":"Darryl Reid","value":20000,"arr":6000,"source":"Call Inquiry","notes":"","closeDate":""},{"id":"2754255627","name":"Heritage Furniture (WP)","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2754255627","board":"aptx","createdAt":"2026-03-02T13:51:14Z","updatedAt":"2026-05-25T17:00:21Z","stage":"Proposal","substatus":"Sensitive","followDate":"2026-06-24","followStatus":"Scheduled","owner":"Darryl Reid","value":4000,"arr":7200,"source":"WorldPay","notes":"On vacation, will reengage in July.","closeDate":"2026-07-11"},{"id":"2743570095","name":"Storehouse Tea","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2743570095","board":"aptx","createdAt":"2026-02-24T19:47:13Z","updatedAt":"2026-05-25T17:18:42Z","stage":"Negotiation","substatus":"Negotiation","followDate":"2026-06-03","followStatus":"Scheduled","owner":"Darryl Reid","value":10000,"arr":2400,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786732411","name":"Austropical USA","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786732411","board":"aptx","createdAt":"2026-03-18T01:06:03Z","updatedAt":"2026-05-18T16:50:07Z","stage":"Following up","substatus":"Not System Ready","followDate":"2026-07-01","followStatus":"Scheduled","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2791457966","name":"Carolina Dock Equipment","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2791457966","board":"aptx","createdAt":"2026-03-19T21:06:22Z","updatedAt":"2026-05-25T16:27:27Z","stage":"Following up","substatus":"Direct reply sent","followDate":"2026-06-02","followStatus":"Dean Call","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786687234","name":"Servotech","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786687234","board":"aptx","createdAt":"2026-03-18T01:14:37Z","updatedAt":"2026-05-21T17:30:53Z","stage":"Following up","substatus":"Non-Responsive","followDate":"","followStatus":"Over Due","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786689464","name":":start-end","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786689464","board":"aptx","createdAt":"2026-03-18T01:10:25Z","updatedAt":"2026-05-21T17:34:05Z","stage":"Following up","substatus":"Non-Responsive","followDate":"","followStatus":"Over Due","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786687157","name":"Q-SAQ INC","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786687157","board":"aptx","createdAt":"2026-03-18T01:12:43Z","updatedAt":"2026-05-18T16:14:33Z","stage":"Following up","substatus":"Non-Responsive","followDate":"","followStatus":"Waiting on Them","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786714196","name":"Integrated System Design","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786714196","board":"aptx","createdAt":"2026-03-18T02:12:02Z","updatedAt":"2026-05-21T19:32:46Z","stage":"Following up","substatus":"Non-Responsive","followDate":"","followStatus":"Waiting on Them","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786702835","name":"The Terpene Store","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786702835","board":"aptx","createdAt":"2026-03-18T02:07:54Z","updatedAt":"2026-05-25T17:34:30Z","stage":"Following up","substatus":"Non-Responsive","followDate":"2026-05-28","followStatus":"Scheduled","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2897583351","name":"Mark Pearlman","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2897583351","board":"aptx","createdAt":"2026-05-07T00:35:02Z","updatedAt":"2026-05-26T15:59:29Z","stage":"Lost","substatus":"","followDate":"","followStatus":"","owner":"","value":0,"arr":0,"source":"","notes":"","closeDate":""},{"id":"2805303456","name":"Beat-le","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2805303456","board":"aptx","createdAt":"2026-03-26T12:53:53Z","updatedAt":"2026-05-26T15:59:36Z","stage":"Lost","substatus":"","followDate":"2026-05-25","followStatus":"Over Due","owner":"Administrator","value":0,"arr":0,"source":"APTX Trial","notes":"","closeDate":""},{"id":"2786707572","name":"Protected Wellness","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786707572","board":"aptx","createdAt":"2026-03-18T02:05:54Z","updatedAt":"2026-05-26T13:00:15Z","stage":"Following up","substatus":"Direct reply sent","followDate":"2026-05-25","followStatus":"Over Due","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786713309","name":"Marey Heater Corp.","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786713309","board":"aptx","createdAt":"2026-03-18T02:03:40Z","updatedAt":"2026-05-26T13:00:11Z","stage":"Following up","substatus":"Non-Responsive","followDate":"2026-05-25","followStatus":"Over Due","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2858814120","name":"Nomaro","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2858814120","board":"aptx","createdAt":"2026-04-21T18:49:50Z","updatedAt":"2026-05-26T13:00:11Z","stage":"Following up","substatus":"Direct reply sent","followDate":"2026-05-25","followStatus":"Over Due","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"Has asked for pricing info, real company","closeDate":""},{"id":"2838056387","name":"Stacked Flavor Co","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2838056387","board":"aptx","createdAt":"2026-04-13T14:25:18Z","updatedAt":"2026-05-25T17:42:24Z","stage":"Lost","substatus":"Non-Responsive","followDate":"","followStatus":"Closed/Inactive","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"Josh works with the limitless foundation, I think its a partnership with Stacked Flavor Co","closeDate":""},{"id":"2841809400","name":"Botas Cebu APTX Shopify","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2841809400","board":"aptx","createdAt":"2026-04-15T01:49:14Z","updatedAt":"2026-05-25T16:57:36Z","stage":"Lost","substatus":"Non-Responsive","followDate":"","followStatus":"Closed/Inactive","owner":"Darryl Reid","value":0,"arr":0,"source":"Call Inquiry","notes":"","closeDate":""},{"id":"2715819550","name":"Tiffany Pierson","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2715819550","board":"eagle","createdAt":"2026-02-11T21:59:58Z","updatedAt":"2026-05-27T16:57:36Z","stage":"New","substatus":"In Trial","followDate":"2026-05-28","followStatus":"Scheduled","owner":"","value":0,"arr":0,"source":"","notes":"","closeDate":""},{"id":"2777547479","name":"Artisan Tropic","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2777547479","board":"eagle","createdAt":"2026-03-12T18:07:47Z","updatedAt":"2026-05-06T14:17:33Z","stage":"New","substatus":"","followDate":"","followStatus":"","owner":"","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786714244","name":"Ace Tool","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2786714244","board":"eagle","createdAt":"2026-03-18T02:17:52Z","updatedAt":"2026-05-06T14:19:03Z","stage":"New","substatus":"","followDate":"","followStatus":"","owner":"","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786715813","name":"HelloMary","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2786715813","board":"eagle","createdAt":"2026-03-18T02:22:31Z","updatedAt":"2026-05-06T14:20:49Z","stage":"New","substatus":"","followDate":"","followStatus":"","owner":"","value":0,"arr":0,"source":"Growth Automation","notes":"marijuana dispensary","closeDate":""},{"id":"2815400760","name":"Gather Brands","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2815400760","board":"eagle","createdAt":"2026-03-31T18:53:09Z","updatedAt":"2026-05-06T14:24:28Z","stage":"New","substatus":"Following Up","followDate":"","followStatus":"","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"Women's Sales Agency (Not a qualified lead for apt or eagle)","closeDate":""},{"id":"2815435099","name":"Handle with Care Express","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2815435099","board":"eagle","createdAt":"2026-03-31T19:15:30Z","updatedAt":"2026-05-06T13:05:37Z","stage":"New","substatus":"Following Up","followDate":"","followStatus":"","owner":"","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"5035023680","name":"Jonathan English","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/5035023680","board":"eagle","createdAt":"2025-10-09T08:21:33Z","updatedAt":"2026-05-06T14:09:45Z","stage":"New","substatus":"","followDate":"","followStatus":"","owner":"","value":0,"arr":0,"source":"","notes":"","closeDate":""},{"id":"2838058451","name":"J2K Fun-gistics","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2838058451","board":"eagle","createdAt":"2026-04-13T14:32:53Z","updatedAt":"2026-05-27T16:56:15Z","stage":"New","substatus":"Following Up","followDate":"2026-05-28","followStatus":"Scheduled","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2840954019","name":"UndefeatedJ & Kick'n Kicks","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2840954019","board":"eagle","createdAt":"2026-04-14T14:51:36Z","updatedAt":"2026-05-27T16:57:18Z","stage":"New","substatus":"Following Up","followDate":"2026-05-28","followStatus":"Scheduled","owner":"Darryl Reid, Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"web site is under construction, no reponses to email, Lindking checks out as legit","closeDate":""},{"id":"2901193918","name":"New item","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2901193918","board":"eagle","createdAt":"2026-05-08T08:27:04Z","updatedAt":"2026-05-08T08:27:07Z","stage":"New","substatus":"","followDate":"","followStatus":"","owner":"","value":0,"arr":0,"source":"","notes":"","closeDate":""}]</script>
+
 <script>
+// ============= SNAPSHOT DATA (used when window.cowork is unavailable) =============
+// Captured: 2026-05-27. Re-generate to refresh. 38 active + recent-lost deals.
+const SNAPSHOT_DATA = (() => {
+  try { return JSON.parse(document.getElementById('snapshot-data').textContent); }
+  catch { return []; }
+})();
+const SNAPSHOT_DATE = '2026-05-27';
+
 // ============= CAPTURE PRISTINE SOURCE =============
 // Grab the HTML before any render mutates the DOM so "View HTML" shows the real source.
 const SOURCE_HTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
@@ -1010,7 +1008,43 @@ function renderFull(all){
 }
 
 // ============= LOAD =============
+function inCoworkEnvironment() {
+  return typeof window !== 'undefined'
+      && window.cowork
+      && typeof window.cowork.callMcpTool === 'function';
+}
+
+function setMode(mode) {
+  const badge = document.getElementById('mode-badge');
+  if (!badge) return;
+  if (mode === 'snapshot') {
+    badge.textContent = 'Snapshot · ' + SNAPSHOT_DATE;
+    badge.className = 'badge snap';
+  } else {
+    badge.textContent = 'Live';
+    badge.className = 'badge live';
+  }
+}
+
 async function load() {
+  // Snapshot mode (e.g. running outside Cowork — on GitHub Pages, opened from disk, etc.)
+  if (!inCoworkEnvironment()) {
+    setMode('snapshot');
+    try {
+      const all = SNAPSHOT_DATA;
+      render(all);
+      renderFull(all);
+      document.getElementById('last-refresh').textContent =
+        'Snapshot from ' + SNAPSHOT_DATE + ' · ' + all.length + ' deals';
+    } catch (e) {
+      document.getElementById('today-body').innerHTML =
+        `<div class="error"><strong>Snapshot render failed.</strong><pre>${esc(e.message || String(e))}</pre></div>`;
+    }
+    return;
+  }
+
+  // Live mode — fetch fresh from Monday via Cowork
+  setMode('live');
   try {
     const [aptxItems, eagleItems] = await Promise.all([
       fetchBoard(APTX_BOARD),
@@ -1024,11 +1058,14 @@ async function load() {
     document.getElementById('last-refresh').textContent =
       'Refreshed ' + new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}) + ' · ' + all.length + ' deals';
   } catch (e) {
-    const msg = `<div class="error"><strong>Failed to load Monday data.</strong><pre>${esc(e.message || String(e))}</pre></div>`;
-    document.getElementById('today-body').innerHTML = msg;
-    document.getElementById('full-body').innerHTML = msg;
-    document.getElementById('last-refresh').textContent = 'Load failed';
-    console.error(e);
+    // Live fetch failed — fall back to snapshot
+    console.error('Live fetch failed, falling back to snapshot:', e);
+    setMode('snapshot');
+    const all = SNAPSHOT_DATA;
+    render(all);
+    renderFull(all);
+    document.getElementById('last-refresh').textContent =
+      'Live fetch failed — showing snapshot from ' + SNAPSHOT_DATE;
   }
 }
 
