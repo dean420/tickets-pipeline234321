@@ -1,5 +1,19 @@
 <!DOCTYPE html>
-<html lang="en"><head>
+<html lang="en"><head><script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Sales Pipeline Report",
+  "schemaVersion": 1,
+  "description": "Live AdvancePro sales pipeline report. Pulls fresh data from Monday APTX (2145982976) and Eagle (2152071345) boards on every open. Today tab: activity log, due-today, stat tiles, week preview, open-items chips. Full Pipeline tab: KPIs, funnel, risks/opportunities, sectioned deal tables.",
+  "mcpTools": [
+    "mcp__58c3fc5a-bace-447a-aadd-9cfaec61309b__all_monday_api"
+  ],
+  "mcpServerNames": [
+    "monday.com"
+  ]
+}
+</script>
+
+
 <meta charset="utf-8">
 <title>AdvancePro Sales Pipeline</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -435,6 +449,47 @@ const fmtMoney = (n) => {
 };
 
 // ============= MONDAY DATA FETCH =============
+const MONDAY_TOOL = 'mcp__58c3fc5a-bace-447a-aadd-9cfaec61309b__all_monday_api';
+
+// Wait for window.cowork.callMcpTool to be available (it may load asynchronously)
+async function waitForCowork(maxMs = 4000) {
+  const start = Date.now();
+  while (Date.now() - start < maxMs) {
+    if (typeof window !== 'undefined' && window.cowork && typeof window.cowork.callMcpTool === 'function') {
+      return true;
+    }
+    await new Promise(r => setTimeout(r, 100));
+  }
+  return false;
+}
+
+// Extract a JS object from whatever shape callMcpTool returned
+function unwrapMcpResponse(res) {
+  if (res == null) throw new Error('callMcpTool returned null/undefined');
+  if (typeof res === 'string') {
+    try { return JSON.parse(res); }
+    catch (e) { throw new Error('Response was a string but not valid JSON: ' + res.slice(0, 160)); }
+  }
+  if (typeof res === 'object') {
+    // MCP standard: {content: [{type:'text', text:'...'}]}
+    if (Array.isArray(res.content) && res.content[0]) {
+      const txt = res.content[0].text;
+      if (typeof txt === 'string') {
+        try { return JSON.parse(txt); }
+        catch (e) { throw new Error('content[0].text was not valid JSON: ' + txt.slice(0, 160)); }
+      }
+    }
+    // Already-parsed result shapes
+    if (res.result) return typeof res.result === 'string' ? JSON.parse(res.result) : res.result;
+    if (res.data) return res.data;
+    if (res.boards) return res; // top-level Monday response
+    // Error response?
+    if (res.error) throw new Error('callMcpTool returned error: ' + JSON.stringify(res.error).slice(0, 200));
+    if (res.isError) throw new Error('callMcpTool flagged error: ' + JSON.stringify(res).slice(0, 200));
+  }
+  throw new Error('Unrecognised response shape: ' + JSON.stringify(res).slice(0, 200));
+}
+
 async function fetchBoard(boardId) {
   const query = `query($boardId: ID!) {
     boards(ids: [$boardId]) {
@@ -442,19 +497,21 @@ async function fetchBoard(boardId) {
         cursor
         items { id name url created_at updated_at
           column_values { id type text value } } } } }`;
-  const res = await window.cowork.callMcpTool(
-    'mcp__58c3fc5a-bace-447a-aadd-9cfaec61309b__all_monday_api',
-    { query, variables: JSON.stringify({ boardId: String(boardId) }) }
-  );
-  // Result may be wrapped — extract JSON
-  let data = res;
-  if (res && res.content && Array.isArray(res.content)) {
-    const txt = res.content[0]?.text || '';
-    try { data = JSON.parse(txt); } catch { data = {raw: txt}; }
-  } else if (typeof res === 'string') {
-    try { data = JSON.parse(res); } catch {}
+  let res;
+  try {
+    res = await window.cowork.callMcpTool(MONDAY_TOOL, {
+      query,
+      variables: JSON.stringify({ boardId: String(boardId) })
+    });
+  } catch (e) {
+    throw new Error(`Monday call failed for board ${boardId}: ${e && e.message ? e.message : String(e)}`);
   }
-  return data?.boards?.[0]?.items_page?.items || [];
+  const data = unwrapMcpResponse(res);
+  const items = data && data.boards && data.boards[0] && data.boards[0].items_page && data.boards[0].items_page.items;
+  if (!Array.isArray(items)) {
+    throw new Error(`Board ${boardId}: response missing boards[0].items_page.items. Got keys: ${Object.keys(data || {}).join(',')}`);
+  }
+  return items;
 }
 
 // ============= NORMALIZE =============
@@ -1008,43 +1065,61 @@ function renderFull(all){
 }
 
 // ============= LOAD =============
-function inCoworkEnvironment() {
-  return typeof window !== 'undefined'
-      && window.cowork
-      && typeof window.cowork.callMcpTool === 'function';
-}
-
 function setMode(mode) {
   const badge = document.getElementById('mode-badge');
   if (!badge) return;
   if (mode === 'snapshot') {
     badge.textContent = 'Snapshot · ' + SNAPSHOT_DATE;
     badge.className = 'badge snap';
+  } else if (mode === 'loading') {
+    badge.textContent = 'Loading…';
+    badge.className = 'badge';
   } else {
     badge.textContent = 'Live';
     badge.className = 'badge live';
   }
 }
 
+function renderLiveError(errMessage) {
+  const msg = `
+    <div class="error" style="margin:16px 0">
+      <strong>Live Monday data fetch failed.</strong>
+      <pre>${esc(errMessage)}</pre>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button onclick="load()" style="background:#1A7A3E;color:#fff;border:none;padding:7px 14px;border-radius:5px;font-weight:700;cursor:pointer;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Retry Live</button>
+        <button onclick="useSnapshot()" style="background:#C9A84C;color:#3D2E0E;border:none;padding:7px 14px;border-radius:5px;font-weight:700;cursor:pointer;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Use Snapshot Instead</button>
+      </div>
+    </div>`;
+  document.getElementById('today-body').innerHTML = msg;
+  document.getElementById('full-body').innerHTML = msg;
+}
+
+function useSnapshot() {
+  setMode('snapshot');
+  const all = SNAPSHOT_DATA;
+  render(all);
+  renderFull(all);
+  document.getElementById('last-refresh').textContent =
+    'Snapshot from ' + SNAPSHOT_DATE + ' · ' + all.length + ' deals';
+}
+
 async function load() {
-  // Snapshot mode (e.g. running outside Cowork — on GitHub Pages, opened from disk, etc.)
-  if (!inCoworkEnvironment()) {
-    setMode('snapshot');
-    try {
-      const all = SNAPSHOT_DATA;
-      render(all);
-      renderFull(all);
-      document.getElementById('last-refresh').textContent =
-        'Snapshot from ' + SNAPSHOT_DATE + ' · ' + all.length + ' deals';
-    } catch (e) {
-      document.getElementById('today-body').innerHTML =
-        `<div class="error"><strong>Snapshot render failed.</strong><pre>${esc(e.message || String(e))}</pre></div>`;
-    }
+  setMode('loading');
+  document.getElementById('last-refresh').textContent = 'Connecting to Monday…';
+  document.getElementById('today-body').innerHTML =
+    '<div class="loading"><span class="spinner"></span>Pulling fresh data from Monday…</div>';
+  document.getElementById('full-body').innerHTML =
+    '<div class="loading"><span class="spinner"></span>Pulling fresh data from Monday…</div>';
+
+  // Step 1: Wait for window.cowork to be available
+  const coworkReady = await waitForCowork(4000);
+  if (!coworkReady) {
+    // Truly running outside Cowork (GitHub Pages, opened from disk) — use snapshot silently
+    useSnapshot();
     return;
   }
 
-  // Live mode — fetch fresh from Monday via Cowork
-  setMode('live');
+  // Step 2: Live fetch
   try {
     const [aptxItems, eagleItems] = await Promise.all([
       fetchBoard(APTX_BOARD),
@@ -1053,19 +1128,16 @@ async function load() {
     const aptx = aptxItems.map(i => normalize(i, COL_APTX, 'aptx'));
     const eagle = eagleItems.map(i => normalize(i, COL_EAGLE, 'eagle'));
     const all = [...aptx, ...eagle];
+    setMode('live');
     render(all);
     renderFull(all);
     document.getElementById('last-refresh').textContent =
-      'Refreshed ' + new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}) + ' · ' + all.length + ' deals';
+      'Refreshed ' + new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}) + ' · ' + all.length + ' deals (live)';
   } catch (e) {
-    // Live fetch failed — fall back to snapshot
-    console.error('Live fetch failed, falling back to snapshot:', e);
+    console.error('[live fetch failed]', e);
     setMode('snapshot');
-    const all = SNAPSHOT_DATA;
-    render(all);
-    renderFull(all);
-    document.getElementById('last-refresh').textContent =
-      'Live fetch failed — showing snapshot from ' + SNAPSHOT_DATE;
+    document.getElementById('last-refresh').textContent = 'Live fetch failed';
+    renderLiveError(e && e.message ? e.message : String(e));
   }
 }
 
