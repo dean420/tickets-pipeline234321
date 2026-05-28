@@ -418,15 +418,19 @@ const cvVal = (item, colId) => {
   if (!v) return null;
   try { return JSON.parse(v); } catch { return v; }
 };
+// REFERENCE_DATE = what the report treats as "today". Defaults to the real now;
+// when running in snapshot mode it gets overridden to the snapshot capture date
+// so "today's activity" reflects the snapshot day, not the day the file is opened.
+let REFERENCE_DATE = new Date();
 const isToday = (iso) => {
   if (!iso) return false;
   const d = new Date(iso);
-  const t = new Date();
+  const t = REFERENCE_DATE;
   return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate();
 };
 const daysSince = (iso) => {
   if (!iso) return null;
-  return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  return Math.floor((REFERENCE_DATE.getTime() - new Date(iso).getTime()) / 86400000);
 };
 const fmtTime = (iso) => {
   if (!iso) return '';
@@ -616,7 +620,7 @@ function getActivityType(deal) {
 
 // ============= RENDER =============
 function render(allDeals) {
-  const today = new Date();
+  const today = REFERENCE_DATE;
   const todayStr = today.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
 
   // Filter today's activity
@@ -644,7 +648,7 @@ function render(allDeals) {
   // This Week preview — group follow-ups by day
   const weekDays = [];
   for (let i = 1; i <= 4; i++) {
-    const d = new Date(); d.setDate(d.getDate() + i);
+    const d = new Date(REFERENCE_DATE.getTime()); d.setDate(d.getDate() + i);
     const key = d.toISOString().slice(0,10);
     const items = allDeals.filter(x => x.followDate === key);
     weekDays.push({date: d, items});
@@ -970,7 +974,7 @@ function renderFull(all){
   const propsOut = all.filter(d => isActive(d.stage) && ['Proposal','Negotiation'].includes(d.stage)).length;
   const riskCount = totalActive.filter(d => makeFlag(d).type === 'r').length;
 
-  const today = new Date(); today.setHours(0,0,0,0);
+  const today = new Date(REFERENCE_DATE.getTime()); today.setHours(0,0,0,0);
   const weekEnd = new Date(today); weekEnd.setDate(weekEnd.getDate() + 7);
   const deanWeek = all.filter(d => {
     if ((d.followStatus||'').toLowerCase() !== 'dean call') return false;
@@ -1096,14 +1100,20 @@ function renderLiveError(errMessage) {
 
 function useSnapshot() {
   setMode('snapshot');
+  // Anchor "today" to the snapshot capture date so the Today tab shows
+  // what the day looked like when the snapshot was taken, not the day this file is opened.
+  // Parse as local-noon to avoid off-by-one from timezone interpretation of bare YYYY-MM-DD.
+  REFERENCE_DATE = new Date(SNAPSHOT_DATE + 'T12:00:00');
   const all = SNAPSHOT_DATA;
   render(all);
   renderFull(all);
   document.getElementById('last-refresh').textContent =
-    'Snapshot from ' + SNAPSHOT_DATE + ' · ' + all.length + ' deals';
+    'Snapshot from ' + SNAPSHOT_DATE + ' · ' + all.length + ' deals · "today" = snapshot date';
 }
 
 async function load() {
+  // Reset reference date — live mode uses real "now"
+  REFERENCE_DATE = new Date();
   setMode('loading');
   document.getElementById('last-refresh').textContent = 'Connecting to Monday…';
   document.getElementById('today-body').innerHTML =
