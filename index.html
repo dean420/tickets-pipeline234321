@@ -1,1155 +1,588 @@
-<!DOCTYPE html>
-<html lang="en"><head><script type="application/json" id="cowork-artifact-meta">
-{
-  "name": "Sales Pipeline Report",
-  "schemaVersion": 1,
-  "description": "Live AdvancePro sales pipeline report. Pulls fresh data from Monday APTX (2145982976) and Eagle (2152071345) boards on every open. Today tab: activity log, due-today, stat tiles, week preview, open-items chips. Full Pipeline tab: KPIs, funnel, risks/opportunities, sectioned deal tables.",
-  "mcpTools": [
-    "mcp__58c3fc5a-bace-447a-aadd-9cfaec61309b__all_monday_api"
-  ],
-  "mcpServerNames": [
-    "monday.com"
-  ]
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Ticket Tracker Snapshot — 7/6/2026, 9:07:09 AM</title><style>:root{color-scheme:light;}:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0px; font: 14px / 1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: rgb(29, 31, 35); background: rgb(250, 250, 251); }
+.wrap { max-width: 1100px; margin: 0px auto; padding: 18px 22px 60px; }
+header.top { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 4px; }
+h1 { font-size: 22px; margin: 0px; font-weight: 600; }
+.subtitle { color: rgb(95, 100, 112); font-size: 13px; }
+.toolbar { display: flex; gap: 8px; margin: 10px 0px 18px; flex-wrap: wrap; align-items: center; }
+.export-btn { padding: 7px 12px; border: 1px solid rgb(29, 78, 216); background: rgb(29, 78, 216); color: rgb(255, 255, 255); border-radius: 8px; font-style: inherit; font-variant: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+.export-btn:hover { background: rgb(30, 64, 175); border-color: rgb(30, 64, 175); }
+.toolbar input[type="search"] { flex: 1 1 0%; min-width: 200px; padding: 8px 12px; border: 1px solid rgb(214, 216, 222); border-radius: 8px; background: rgb(255, 255, 255); font: inherit; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: rgb(238, 240, 244); color: rgb(44, 48, 56); }
+.pill.warn { background: rgb(253, 231, 233); color: rgb(179, 38, 30); }
+.pill.ok { background: rgb(227, 245, 234); color: rgb(29, 111, 63); }
+.pill.info { background: rgb(230, 239, 255); color: rgb(29, 78, 216); }
+.pill.muted { background: rgb(236, 236, 239); color: rgb(86, 90, 100); }
+.pill.dev { background: rgb(253, 235, 214); color: rgb(138, 74, 19); }
+.pill.new { background: rgb(243, 232, 255); color: rgb(107, 33, 168); }
+.badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; margin-left: 6px; vertical-align: middle; }
+.badge.bug { background: rgb(253, 231, 233); color: rgb(179, 38, 30); }
+.badge.kb { background: rgb(230, 239, 255); color: rgb(29, 78, 216); }
+.badge.enh { background: rgb(253, 235, 214); color: rgb(138, 74, 19); }
+.badge.ap { background: rgb(230, 239, 255); color: rgb(29, 78, 216); }
+.badge.eagle { background: rgb(243, 232, 255); color: rgb(107, 33, 168); }
+details.section { background: rgb(255, 255, 255); border: 1px solid rgb(228, 230, 236); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+details.section.urgent { border-color: rgb(244, 178, 182); }
+details.section[open] { box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 0px; }
+details.section > summary { list-style: none; cursor: pointer; padding: 12px 16px; display: flex; align-items: center; gap: 10px; user-select: none; }
+details.section.urgent > summary { background: rgb(254, 244, 245); }
+details.section > summary::-webkit-details-marker { display: none; }
+details.section > summary::before { content: "▸"; color: rgb(138, 142, 152); transition: transform 0.15s; display: inline-block; }
+details.section[open] > summary::before { transform: rotate(90deg); }
+details.section > summary .title { font-weight: 600; flex: 1 1 0%; }
+details.section.urgent > summary .title { color: rgb(179, 38, 30); }
+details.section > summary .desc { color: rgb(95, 100, 112); font-size: 12px; font-weight: 400; }
+.group-body { padding: 4px 4px 8px; }
+.ticket { display: grid; grid-template-columns: 32px 1fr auto; gap: 6px 12px; padding: 12px 14px; border-top: 1px solid rgb(240, 241, 244); align-items: start; }
+.ticket:first-child { border-top-width: medium; border-top-style: none; border-top-color: currentcolor; }
+.ticket .num { color: rgb(95, 100, 112); font-variant-numeric: tabular-nums; padding-top: 2px; font-weight: 500; }
+.ticket .body .name { font-weight: 600; color: rgb(17, 17, 17); text-decoration: none; }
+.ticket .body .name:hover { text-decoration: underline; }
+.ticket .body .meta-row { color: rgb(95, 100, 112); font-size: 12.5px; margin-top: 3px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.ticket .body .meta-row .label { color: rgb(138, 142, 152); }
+.ticket .body .meta-row .v { color: rgb(44, 48, 56); }
+.ticket .body .meta-row .v.bold { font-weight: 500; }
+.ticket .body .effort { margin-top: 6px; color: rgb(44, 48, 56); font-size: 13px; background: rgb(246, 247, 249); border-left: 3px solid rgb(214, 216, 222); padding: 6px 10px; border-radius: 0px 6px 6px 0px; }
+.ticket .body .effort.loading { color: rgb(138, 142, 152); font-style: italic; background: transparent; border-left-color: rgb(236, 236, 239); }
+.ticket .body .effort .label { color: rgb(138, 142, 152); font-size: 11.5px; display: block; }
+.ticket .right { text-align: right; display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+.age-badge { font-size: 11.5px; color: rgb(95, 100, 112); font-variant-numeric: tabular-nums; }
+.age-badge.stale { color: rgb(179, 38, 30); font-weight: 500; }
+.age-badge.urgent { color: rgb(179, 38, 30); font-weight: 600; }
+.ext-link { font-size: 11.5px; color: rgb(29, 78, 216); text-decoration: none; }
+.ext-link:hover { text-decoration: underline; }
+.empty { padding: 14px 18px; color: rgb(138, 142, 152); font-style: italic; }
+.errbox { background: rgb(253, 231, 233); border: 1px solid rgb(244, 178, 182); color: rgb(128, 33, 33); padding: 10px 14px; border-radius: 8px; margin: 10px 0px; }
+.footer { color: rgb(138, 142, 152); font-size: 12px; margin-top: 24px; text-align: center; }
+.dashboard { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 14px 0px 10px; }
+.stat-card { position: relative; background: rgb(255, 255, 255); border: 1px solid rgb(228, 230, 236); border-radius: 12px; padding: 14px 16px 12px 18px; overflow: hidden; }
+.stat-card::before { content: ""; position: absolute; left: 0px; top: 0px; bottom: 0px; width: 4px; background: rgb(214, 216, 222); }
+.stat-card.stat-open::before { background: linear-gradient(rgb(29, 78, 216), rgb(37, 99, 235)); }
+.stat-card.stat-resolved::before { background: linear-gradient(rgb(29, 111, 63), rgb(34, 165, 89)); }
+.stat-head { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: rgb(95, 100, 112); }
+.stat-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: rgb(214, 216, 222); }
+.stat-open .stat-dot { background: rgb(29, 78, 216); }
+.stat-resolved .stat-dot { background: rgb(34, 165, 89); }
+.stat-value { font-size: 30px; font-weight: 700; color: rgb(29, 31, 35); line-height: 1.05; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.stat-value.loading { color: rgb(200, 204, 212); }
+.stat-sub { font-size: 11.5px; color: rgb(138, 142, 152); margin-top: 3px; }
+@media (max-width: 560px) {
+  .dashboard { grid-template-columns: 1fr; }
 }
-</script>
-
-
-<meta charset="utf-8">
-<title>AdvancePro Sales Pipeline</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=DM+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
-<style>
-:root {
-  color-scheme: light;
-  --navy:#0D1B2A; --navy2:#1A2E42; --teal:#1A7A6E; --gold:#C9A84C;
-  --red:#C0392B; --amber:#D97706; --green:#1A7A3E; --blue:#1D4ED8;
-  --purple:#6B3FA0; --slate:#475569;
-  --bg:#EEF2F7; --card:#FFFFFF; --line:#E2E8F0; --text:#1A2E42; --muted:#64748B;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5}
-a{color:var(--blue);text-decoration:none;font-weight:500}
-a:hover{text-decoration:underline}
-.mono{font-family:'DM Mono',ui-monospace,monospace}
-
-/* TOPBAR */
-.topbar{position:sticky;top:0;background:var(--navy);color:#fff;padding:14px 28px;display:flex;justify-content:space-between;align-items:center;z-index:20;box-shadow:0 1px 0 rgba(0,0,0,.1)}
-.topbar-l{display:flex;align-items:center;gap:14px}
-.topbar h1{font-size:18px;font-weight:700;letter-spacing:.2px}
-.topbar .badges{display:flex;gap:6px}
-.topbar .badge{background:rgba(255,255,255,.12);padding:3px 8px;border-radius:4px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-.topbar .badge.live{background:#1A7A3E;color:#fff}
-.topbar .badge.snap{background:var(--gold);color:#3D2E0E}
-.topbar-r{font-size:11px;opacity:.75;font-family:'DM Mono'}
-.topbar-right{display:flex;align-items:center;gap:12px}
-.view-code-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#fff;font-family:inherit;font-size:10.5px;font-weight:700;padding:6px 12px;border-radius:5px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:.15s;display:inline-flex;align-items:center;gap:5px}
-.view-code-btn:hover{background:rgba(255,255,255,.24);border-color:rgba(255,255,255,.4)}
-.view-code-btn .icon{font-size:11px}
-
-.code-modal{display:none;position:fixed;inset:0;background:rgba(13,27,42,.7);z-index:100;align-items:center;justify-content:center;padding:30px;backdrop-filter:blur(2px)}
-.code-modal.open{display:flex}
-.code-modal-inner{background:#0D1B2A;color:#E2E8F0;max-width:1100px;width:100%;max-height:90vh;border-radius:10px;display:flex;flex-direction:column;box-shadow:0 25px 60px rgba(0,0,0,.4);overflow:hidden}
-.code-modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.1);background:#1A2E42}
-.code-modal-head h2{font-size:13px;font-weight:700;letter-spacing:.3px;color:#fff;display:flex;align-items:center;gap:8px}
-.code-modal-head h2 .mono{font-family:'DM Mono';font-size:11.5px;color:var(--gold);font-weight:500}
-.code-modal-actions{display:flex;gap:8px}
-.code-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;font-family:inherit;font-size:11px;font-weight:600;padding:6px 13px;border-radius:5px;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;transition:.15s}
-.code-btn:hover{background:rgba(255,255,255,.2)}
-.code-btn.primary{background:var(--gold);color:#3D2E0E;border-color:var(--gold)}
-.code-btn.primary:hover{background:#D8B94F}
-.code-btn.primary.copied{background:var(--green);color:#fff;border-color:var(--green)}
-.code-body{flex:1;overflow:auto;background:#0D1B2A}
-.code-body pre{margin:0;padding:18px 22px;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;line-height:1.55;color:#CBD5E1;white-space:pre;tab-size:2}
-.code-modal-foot{padding:10px 20px;border-top:1px solid rgba(255,255,255,.08);font-size:10.5px;color:#94A3B8;display:flex;justify-content:space-between;align-items:center}
-.code-modal-foot kbd{font-family:'DM Mono';background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);padding:1px 5px;border-radius:3px;font-size:10px}
-
-/* TABS */
-.tabbar{position:sticky;top:67px;background:var(--navy2);display:flex;padding:0 28px;z-index:19;border-bottom:1px solid rgba(255,255,255,.08)}
-.tab{background:none;border:none;color:rgba(255,255,255,.55);font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:11px 18px;cursor:pointer;border-bottom:3px solid transparent;transition:.15s}
-.tab.active{color:#fff;border-bottom-color:var(--gold)}
-.tab:hover{color:#fff}
-
-/* LAYOUT */
-.wrap{max-width:1640px;margin:0 auto;padding:20px 28px 80px}
-.tab-content{display:none}
-.tab-content.active{display:block}
-
-/* HERO */
-.hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;padding:22px 28px;border-radius:8px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:20px}
-.hero h2{font-size:20px;font-weight:700;margin-bottom:6px}
-.hero .sub{font-size:13px;opacity:.82}
-.hero-count{text-align:right;flex-shrink:0}
-.hero-count .n{font-family:'DM Mono';font-size:32px;font-weight:700;line-height:1}
-.hero-count .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.7;margin-top:4px}
-
-/* BANNERS */
-.banner{padding:14px 22px;border-radius:8px;margin-bottom:14px;display:flex;align-items:center;gap:14px}
-.banner.win{background:linear-gradient(135deg,#1A7A3E 0%,#22a86b 100%);color:#fff}
-.banner.due{background:linear-gradient(135deg,#C0392B 0%,#e84a3c 100%);color:#fff;flex-wrap:wrap}
-.banner .title{font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0}
-.banner .body{font-size:12.5px;flex:1}
-.due-chip{display:inline-block;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:4px;font-size:11.5px;font-weight:600;margin:2px 4px 2px 0}
-.due-chip a{color:#fff;text-decoration:underline}
-
-/* STAT TILES */
-.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
-.tile{background:var(--card);border-radius:8px;padding:16px 18px;border-top:4px solid var(--slate);box-shadow:0 1px 3px rgba(15,23,42,.06)}
-.tile .n{font-family:'DM Mono';font-size:28px;font-weight:700;line-height:1.1;color:var(--navy)}
-.tile .l{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:5px;font-weight:600}
-.tile .s{font-size:10.5px;color:var(--slate);margin-top:6px}
-.tile.navy{border-top-color:var(--navy)}
-.tile.teal{border-top-color:var(--teal)}
-.tile.gold{border-top-color:var(--gold)}
-.tile.purple{border-top-color:var(--purple)}
-.tile.red{border-top-color:var(--red)}
-.tile.green{border-top-color:var(--green)}
-.tile.blue{border-top-color:var(--blue)}
-
-/* TWO-COL GRID */
-.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
-.col-card{background:var(--card);border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,.06)}
-.col-card h3{padding:13px 18px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;display:flex;justify-content:space-between;align-items:center}
-.col-card.pos h3{background:#FDE7EF;color:#9D174D}
-.col-card.neg h3{background:#FEE2E2;color:#991B1B}
-.col-card h3 .ct{font-size:10.5px;background:rgba(0,0,0,.12);padding:2px 7px;border-radius:10px}
-.col-body{padding:6px 0;max-height:560px;overflow-y:auto}
-.entry{padding:11px 18px;border-bottom:1px solid var(--line);font-size:12px}
-.entry:last-child{border-bottom:none}
-.entry-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:4px}
-.entry-time{font-family:'DM Mono';font-size:10.5px;color:var(--muted);flex-shrink:0}
-.entry-co{font-weight:700;font-size:12.5px}
-.entry-co a{color:var(--navy)}
-.entry-body{font-size:11.5px;color:var(--slate);margin:2px 0 5px}
-.entry-tags{display:flex;flex-wrap:wrap;gap:4px}
-.tag{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:2px 6px;border-radius:3px}
-.tag.new{background:#FCE7F3;color:#9D174D}
-.tag.promo{background:#DBEAFE;color:#1D4ED8}
-.tag.prop{background:#FEF3C7;color:#92400E}
-.tag.dean{background:#EDE9FE;color:#5B21B6}
-.tag.lost{background:#FEE2E2;color:#991B1B}
-.tag.status{background:#E0E7FF;color:#3730A3}
-.tag.engage{background:#D1FAE5;color:#065F46}
-
-/* PREVIEW + OPEN ITEMS */
-.preview{background:var(--card);border-radius:8px;padding:18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(15,23,42,.06)}
-.preview h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--navy);margin-bottom:12px}
-.preview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.preview-day{background:#F8FAFC;padding:11px;border-radius:6px;border-left:3px solid var(--blue)}
-.preview-day .d{font-size:10.5px;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.4px;margin-bottom:5px}
-.preview-day .items{font-size:11.5px;color:var(--text);line-height:1.5}
-.preview-day .items div{padding:2px 0}
-.preview-day .empty{color:var(--muted);font-style:italic;font-size:11px}
-
-.open-card{background:var(--card);border-radius:8px;padding:16px 18px;box-shadow:0 1px 3px rgba(15,23,42,.06);border-top:4px solid var(--amber)}
-.open-card h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#92400E;margin-bottom:10px}
-.open-chips{display:flex;flex-wrap:wrap;gap:7px}
-.open-chip{background:#FEF3C7;color:#92400E;padding:5px 11px;border-radius:14px;font-size:11px;font-weight:600;border:1px solid #FCD34D}
-.open-chip a{color:#92400E}
-
-/* LOADING + ERROR */
-.loading{padding:60px 28px;text-align:center;color:var(--muted)}
-.loading .spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin-right:10px;vertical-align:middle}
-@keyframes spin{to{transform:rotate(360deg)}}
-.error{background:#FEE2E2;border:1px solid #FCA5A5;color:#991B1B;padding:14px 18px;border-radius:8px;margin:20px 0;font-size:12.5px}
-.error pre{font-family:'DM Mono';font-size:10.5px;margin-top:8px;white-space:pre-wrap;max-height:200px;overflow:auto}
-
-.placeholder{background:var(--card);border-radius:8px;padding:60px 30px;text-align:center;color:var(--muted);box-shadow:0 1px 3px rgba(15,23,42,.06)}
-.placeholder .em{font-size:36px;margin-bottom:12px}
-.placeholder h3{font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px}
-
-/* ============= FULL PIPELINE TAB ============= */
-.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
-
-.funnel{display:flex;height:64px;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,.06);margin-bottom:18px}
-.funnel-seg{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6px 6px;text-align:center;min-width:0;font-size:11px;border-right:1px solid rgba(255,255,255,.18)}
-.funnel-seg:last-child{border-right:none}
-.funnel-seg .n{font-family:'DM Mono';font-size:20px;font-weight:700;line-height:1}
-.funnel-seg .l{font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;opacity:.9;margin-top:3px}
-
-.insights{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
-.insight-card{background:var(--card);border-radius:8px;padding:16px 18px;box-shadow:0 1px 3px rgba(15,23,42,.06)}
-.insight-card.risks{border-top:4px solid var(--red)}
-.insight-card.opps{border-top:4px solid var(--green)}
-.insight-card h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
-.insight-card.risks h3{color:#991B1B}
-.insight-card.opps h3{color:#065F46}
-.insight-list{font-size:12px}
-.insight-item{padding:8px 0;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
-.insight-item:last-child{border-bottom:none}
-.insight-item .dot{flex-shrink:0;width:8px;height:8px;border-radius:50%;margin-top:6px}
-.insight-item.r .dot{background:var(--red)}
-.insight-item.g .dot{background:var(--green)}
-.insight-item .txt{flex:1;font-size:11.5px;line-height:1.5}
-.insight-item .co{font-weight:700;color:var(--navy)}
-
-.section-banner{padding:10px 18px;border-radius:6px;color:#fff;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:flex;justify-content:space-between;align-items:center;margin:22px 0 8px;box-shadow:0 1px 3px rgba(15,23,42,.1)}
-.section-banner .ct{background:rgba(255,255,255,.22);padding:2px 9px;border-radius:10px;font-size:11px}
-
-.deal-tbl{width:100%;background:var(--card);border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,.06);border-collapse:collapse;margin-bottom:6px;font-size:11.5px;table-layout:fixed}
-.deal-tbl thead th{background:var(--navy);color:#fff;padding:8px 9px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.4px;font-weight:700;vertical-align:bottom}
-.deal-tbl tbody td{padding:9px 9px;border-bottom:1px solid var(--line);vertical-align:top;word-wrap:break-word}
-.deal-tbl tbody tr:nth-child(even){background:#F8FAFC}
-.deal-tbl tbody tr:hover{background:#EFF6FF}
-.deal-tbl tbody tr:last-child td{border-bottom:none}
-.deal-tbl .co{font-weight:700;color:var(--navy);font-size:12px;line-height:1.25}
-.deal-tbl .co a{color:var(--navy)}
-.deal-tbl .ct{font-size:10.5px;color:var(--slate);margin-top:2px}
-.deal-tbl .vl{font-family:'DM Mono';font-size:10.5px;color:var(--green);font-weight:600;margin-top:2px}
-.deal-tbl col.c-co{width:14%}
-.deal-tbl col.c-pl{width:6%}
-.deal-tbl col.c-st{width:11%}
-.deal-tbl col.c-dt{width:6.5%}
-.deal-tbl col.c-da{width:5%}
-.deal-tbl col.c-sr{width:7%}
-.deal-tbl col.c-cm{width:17%}
-.deal-tbl col.c-rk{width:13%}
-.deal-tbl col.c-na{width:13.5%}
-
-.pill{display:inline-block;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:2px 6px;border-radius:3px;margin:1px 2px 1px 0;line-height:1.4}
-.pill-stage{background:var(--navy);color:#fff}
-.pill-stage.eng{background:var(--purple)}
-.pill-stage.prop{background:var(--gold);color:#3D2E0E}
-.pill-stage.neg{background:var(--navy)}
-.pill-stage.fol{background:var(--slate);color:#fff}
-.pill-stage.new{background:#94A3B8;color:#1A2E42}
-.pill-stage.lost{background:#374151;color:#fff}
-.pill-sub{background:#E0E7FF;color:#3730A3;border:1px solid #C7D2FE}
-.pill-sub.eng{background:#D1FAE5;color:#065F46;border-color:#A7F3D0}
-.pill-sub.nr{background:#FEE2E2;color:#991B1B;border-color:#FECACA}
-.pill-sub.tr{background:#DBEAFE;color:#1E40AF;border-color:#BFDBFE}
-.pill-sub.par{background:#FEF3C7;color:#92400E;border-color:#FDE68A}
-.pill-fol{padding:2px 6px}
-.pill-fol.due{background:var(--red);color:#fff}
-.pill-fol.sch{background:#DBEAFE;color:#1E40AF}
-.pill-fol.over{background:var(--amber);color:#fff}
-.pill-fol.dean{background:var(--purple);color:#fff}
-.pill-fol.wait{background:#E2E8F0;color:#475569}
-.pill-plat{background:var(--navy);color:#fff}
-.pill-plat.eagle{background:var(--teal);color:#fff}
-
-.days{font-family:'DM Mono';font-weight:700;font-size:12px}
-.days-g{color:var(--green)}
-.days-a{color:var(--amber)}
-.days-r{color:var(--red)}
-
-.comm,.next{font-size:11px;line-height:1.45}
-.comm{color:var(--slate)}
-.next{color:var(--text)}
-.risk{font-size:11px;line-height:1.45}
-.risk .flag{font-size:13px;margin-right:3px}
-.risk .reason{color:var(--slate)}
-
-.sb-hot{background:linear-gradient(90deg,#0D1B2A 0%,#C0392B 100%)}
-.sb-eng{background:var(--purple)}
-.sb-tri{background:var(--blue)}
-.sb-fol{background:var(--green)}
-.sb-fol2{background:var(--slate)}
-.sb-new{background:#475569}
-.sb-eagle{background:var(--teal)}
-.sb-lost{background:#374151}
-
-@media (max-width:900px){
-  .tiles{grid-template-columns:repeat(2,1fr)}
-  .cols{grid-template-columns:1fr}
-  .preview-grid{grid-template-columns:repeat(2,1fr)}
-  .kpis{grid-template-columns:repeat(2,1fr)}
-  .insights{grid-template-columns:1fr}
-}
-</style>
-</head>
-<body>
-
-<div class="topbar">
-  <div class="topbar-l">
-    <h1>AdvancePro Sales Pipeline</h1>
-    <div class="badges">
-      <span class="badge live" id="mode-badge">Live</span>
-      <span class="badge">Monday CRM</span>
+.banner{background:#fff5e6;border:1px solid #fdab3d;color:#8a4a13;padding:8px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;}</style></head><body><div class="wrap"><header class="top"><h1>Ticket Tracker — Snapshot</h1><span class="subtitle">Captured 7/6/2026, 9:07:09 AM</span></header><div class="banner"><b>Note:</b> Static snapshot — data frozen at export time.</div><div class="dashboard">
+    <div class="stat-card stat-open">
+      <div class="stat-head"><span class="stat-dot"></span> Open Tickets</div>
+      <div class="stat-value" id="stat-open">28</div>
+      <div class="stat-sub">in the queue</div>
     </div>
-  </div>
-  <div class="topbar-right">
-    <button class="view-code-btn" id="view-code-btn" title="View and copy the artifact's HTML source">
-      <span class="icon">&lt;/&gt;</span>
-      <span>View HTML</span>
-    </button>
-    <div class="topbar-r" id="last-refresh">Loading…</div>
-  </div>
-</div>
-
-<div class="code-modal" id="code-modal" role="dialog" aria-hidden="true">
-  <div class="code-modal-inner">
-    <div class="code-modal-head">
-      <h2>Live Artifact Source <span class="mono">sales-pipeline.html</span></h2>
-      <div class="code-modal-actions">
-        <button class="code-btn primary" id="copy-code-btn">Copy</button>
-        <button class="code-btn" id="close-code-btn">Close</button>
+    <div class="stat-card stat-resolved">
+      <div class="stat-head"><span class="stat-dot"></span> Resolved · 24h</div>
+      <div class="stat-value" id="stat-resolved">0</div>
+      <div class="stat-sub">last 24 hours</div>
+    </div>
+  </div><div class="toolbar"><input id="search" type="search" placeholder="Filter…" autocomplete="off"/></div><div id="content">
+      <details class="section urgent" data-cat="URGENT" open="">
+        <summary><span class="title">Urgent / Show-Stoppers <span class="desc">— Customer can't conduct business — escalate immediately</span></span><span class="pill warn">6</span></summary>
+        <div class="group-body">
+    <div class="ticket" data-idx="3">
+      <div class="num">1.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3043635239" target="_blank" rel="noopener">Sales rep portal</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">8a Group</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 2, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Awaiting customer</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge urgent">3.9d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3043635239" target="_blank" rel="noopener">Open in Monday →</a>
       </div>
     </div>
-    <div class="code-body">
-      <pre id="code-pre">Loading source…</pre>
-    </div>
-    <div class="code-modal-foot">
-      <span>Self-contained HTML — paste into any .html file and open in a browser.</span>
-      <span>Press <kbd>Esc</kbd> to close</span>
-    </div>
-  </div>
-</div>
-
-<div class="tabbar">
-  <button class="tab active" data-tab="today">Today</button>
-  <button class="tab" data-tab="full">Full Pipeline</button>
-</div>
-
-<div class="wrap">
-  <div id="today-tab" class="tab-content active">
-    <div id="today-body">
-      <div class="loading"><span class="spinner"></span>Pulling fresh data from Monday…</div>
-    </div>
-  </div>
-  <div id="full-tab" class="tab-content">
-    <div id="full-body">
-      <div class="loading"><span class="spinner"></span>Building pipeline view…</div>
-    </div>
-  </div>
-</div>
-
-<script type="application/json" id="snapshot-data">[{"id":"2948982944","name":"JETT LLC","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2948982944","board":"aptx","createdAt":"2026-05-28T20:18:08Z","updatedAt":"2026-05-28T20:21:52Z","stage":"New Lead","substatus":"","followDate":"","followStatus":"","owner":"","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2940269512","name":"ProAxle","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2940269512","board":"aptx","createdAt":"2026-05-25T16:30:09Z","updatedAt":"2026-05-28T12:00:15Z","stage":"Proposal","substatus":"Engaged","followDate":"2026-05-28","followStatus":"Due Today","owner":"Darryl Reid","value":20000,"arr":5100,"source":"","notes":"","closeDate":""},{"id":"2933306726","name":"Cosmo's Superior Food","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2933306726","board":"aptx","createdAt":"2026-05-21T15:13:06Z","updatedAt":"2026-05-28T12:00:15Z","stage":"New Lead","substatus":"Direct reply sent","followDate":"2026-05-28","followStatus":"Due Today","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2927294645","name":"Smith Storage Systems","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2927294645","board":"aptx","createdAt":"2026-05-19T14:49:20Z","updatedAt":"2026-05-28T12:00:17Z","stage":"Following up","substatus":"Direct reply sent","followDate":"2026-05-28","followStatus":"Due Today","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2916581423","name":"Koko & Karma","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2916581423","board":"aptx","createdAt":"2026-05-14T14:44:15Z","updatedAt":"2026-05-28T18:50:54Z","stage":"Following up","substatus":"Direct reply sent","followDate":"2026-06-01","followStatus":"Dean Call","owner":"Administrator","value":0,"arr":0,"source":"","notes":"","closeDate":""},{"id":"2907889545","name":"Sure-Loc Hardware","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2907889545","board":"aptx","createdAt":"2026-05-11T17:49:58Z","updatedAt":"2026-05-28T20:16:50Z","stage":"Following up","substatus":"Engaged","followDate":"2026-05-29","followStatus":"Waiting on Them","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"Confirmed the company, replied on linkedin","closeDate":""},{"id":"2900276922","name":"LA BODEGA DEL DULCE INC","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2900276922","board":"aptx","createdAt":"2026-05-07T20:04:20Z","updatedAt":"2026-05-27T13:00:12Z","stage":"Proposal","substatus":"Proposal Sent","followDate":"2026-05-26","followStatus":"Over Due","owner":"Darryl Reid","value":5000,"arr":3120,"source":"WorldPay","notes":"","closeDate":""},{"id":"2885228422","name":"Pastabilities / The Pasta Shoppe","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2885228422","board":"aptx","createdAt":"2026-05-01T18:23:31Z","updatedAt":"2026-05-21T13:00:10Z","stage":"Engaged","substatus":"Engaged","followDate":"2026-05-20","followStatus":"Over Due","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"Intro call setup for May 7","closeDate":""},{"id":"2874420923","name":"TMB Baking - Barcode Printing","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2874420923","board":"aptx","createdAt":"2026-04-27T18:44:38Z","updatedAt":"2026-05-26T13:00:11Z","stage":"Engaged","substatus":"Engaged","followDate":"2026-05-25","followStatus":"Over Due","owner":"Darryl Reid","value":1500,"arr":300,"source":"Call Inquiry","notes":"","closeDate":""},{"id":"2873469610","name":"VinWizard","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2873469610","board":"aptx","createdAt":"2026-04-27T12:56:59Z","updatedAt":"2026-05-21T13:00:09Z","stage":"Following up","substatus":"Direct reply sent","followDate":"2026-05-20","followStatus":"Over Due","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"Helps companies make premium wine while reducing energy and operating costs.","closeDate":""},{"id":"2849402210","name":"Sweets Kendamas","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2849402210","board":"aptx","createdAt":"2026-04-17T13:20:07Z","updatedAt":"2026-05-21T13:00:09Z","stage":"Following up","substatus":"Engaged","followDate":"2026-05-20","followStatus":"Over Due","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"Maybe sell eagle","closeDate":""},{"id":"2841310902","name":"Hemptique","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2841310902","board":"aptx","createdAt":"2026-04-14T17:45:10Z","updatedAt":"2026-05-25T17:50:42Z","stage":"Engaged","substatus":"Non-Responsive","followDate":"2026-06-09","followStatus":"Over Due","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"Simple Wholesale - good fit (If we cant get through use the phone extension; 1-760-602-4864. ext. 403 and 405","closeDate":""},{"id":"2787880371","name":"Delta Wheel Truing Solutions","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2787880371","board":"aptx","createdAt":"2026-03-18T12:41:44Z","updatedAt":"2026-05-25T17:38:06Z","stage":"Negotiation","substatus":"Non-Responsive","followDate":"2026-06-02","followStatus":"Scheduled","owner":"Darryl Reid","value":20000,"arr":6000,"source":"Call Inquiry","notes":"","closeDate":""},{"id":"2754255627","name":"Heritage Furniture (WP)","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2754255627","board":"aptx","createdAt":"2026-03-02T13:51:14Z","updatedAt":"2026-05-25T17:00:21Z","stage":"Proposal","substatus":"Sensitive","followDate":"2026-06-24","followStatus":"Scheduled","owner":"Darryl Reid","value":4000,"arr":7200,"source":"WorldPay","notes":"On vacation, will reengage in July.","closeDate":"2026-07-11"},{"id":"2743570095","name":"Storehouse Tea","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2743570095","board":"aptx","createdAt":"2026-02-24T19:47:13Z","updatedAt":"2026-05-25T17:18:42Z","stage":"Negotiation","substatus":"Negotiation","followDate":"2026-06-03","followStatus":"Scheduled","owner":"Darryl Reid","value":10000,"arr":2400,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786732411","name":"Austropical USA","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786732411","board":"aptx","createdAt":"2026-03-18T01:06:03Z","updatedAt":"2026-05-18T16:50:07Z","stage":"Following up","substatus":"Not System Ready","followDate":"2026-07-01","followStatus":"Scheduled","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2791457966","name":"Carolina Dock Equipment","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2791457966","board":"aptx","createdAt":"2026-03-19T21:06:22Z","updatedAt":"2026-05-25T16:27:27Z","stage":"Following up","substatus":"Direct reply sent","followDate":"2026-06-02","followStatus":"Dean Call","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786687234","name":"Servotech","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786687234","board":"aptx","createdAt":"2026-03-18T01:14:37Z","updatedAt":"2026-05-21T17:30:53Z","stage":"Following up","substatus":"Non-Responsive","followDate":"","followStatus":"Over Due","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786689464","name":":start-end","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786689464","board":"aptx","createdAt":"2026-03-18T01:10:25Z","updatedAt":"2026-05-21T17:34:05Z","stage":"Following up","substatus":"Non-Responsive","followDate":"","followStatus":"Over Due","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786687157","name":"Q-SAQ INC","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786687157","board":"aptx","createdAt":"2026-03-18T01:12:43Z","updatedAt":"2026-05-18T16:14:33Z","stage":"Following up","substatus":"Non-Responsive","followDate":"","followStatus":"Waiting on Them","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786714196","name":"Integrated System Design","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786714196","board":"aptx","createdAt":"2026-03-18T02:12:02Z","updatedAt":"2026-05-21T19:32:46Z","stage":"Following up","substatus":"Non-Responsive","followDate":"","followStatus":"Waiting on Them","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786702835","name":"The Terpene Store","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786702835","board":"aptx","createdAt":"2026-03-18T02:07:54Z","updatedAt":"2026-05-28T12:00:16Z","stage":"Following up","substatus":"Non-Responsive","followDate":"2026-05-28","followStatus":"Due Today","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2897583351","name":"Mark Pearlman","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2897583351","board":"aptx","createdAt":"2026-05-07T00:35:02Z","updatedAt":"2026-05-26T15:59:29Z","stage":"Lost","substatus":"","followDate":"","followStatus":"","owner":"","value":0,"arr":0,"source":"","notes":"","closeDate":""},{"id":"2805303456","name":"Beat-le","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2805303456","board":"aptx","createdAt":"2026-03-26T12:53:53Z","updatedAt":"2026-05-26T15:59:36Z","stage":"Lost","substatus":"","followDate":"2026-05-25","followStatus":"Over Due","owner":"Administrator","value":0,"arr":0,"source":"APTX Trial","notes":"","closeDate":""},{"id":"2786707572","name":"Protected Wellness","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786707572","board":"aptx","createdAt":"2026-03-18T02:05:54Z","updatedAt":"2026-05-26T13:00:15Z","stage":"Following up","substatus":"Direct reply sent","followDate":"2026-05-25","followStatus":"Over Due","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786713309","name":"Marey Heater Corp.","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2786713309","board":"aptx","createdAt":"2026-03-18T02:03:40Z","updatedAt":"2026-05-26T13:00:11Z","stage":"Following up","substatus":"Non-Responsive","followDate":"2026-05-25","followStatus":"Over Due","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2858814120","name":"Nomaro","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2858814120","board":"aptx","createdAt":"2026-04-21T18:49:50Z","updatedAt":"2026-05-26T13:00:11Z","stage":"Following up","substatus":"Direct reply sent","followDate":"2026-05-25","followStatus":"Over Due","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"Has asked for pricing info, real company","closeDate":""},{"id":"2838056387","name":"Stacked Flavor Co","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2838056387","board":"aptx","createdAt":"2026-04-13T14:25:18Z","updatedAt":"2026-05-25T17:42:24Z","stage":"Lost","substatus":"Non-Responsive","followDate":"","followStatus":"Closed/Inactive","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"Josh works with the limitless foundation, I think its a partnership with Stacked Flavor Co","closeDate":""},{"id":"2841809400","name":"Botas Cebu APTX Shopify","url":"https://advanceprotech-squad.monday.com/boards/2145982976/pulses/2841809400","board":"aptx","createdAt":"2026-04-15T01:49:14Z","updatedAt":"2026-05-25T16:57:36Z","stage":"Lost","substatus":"Non-Responsive","followDate":"","followStatus":"Closed/Inactive","owner":"Darryl Reid","value":0,"arr":0,"source":"Call Inquiry","notes":"","closeDate":""},{"id":"2715819550","name":"Tiffany Pierson","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2715819550","board":"eagle","createdAt":"2026-02-11T21:59:58Z","updatedAt":"2026-05-27T16:57:36Z","stage":"New","substatus":"In Trial","followDate":"2026-05-28","followStatus":"Scheduled","owner":"","value":0,"arr":0,"source":"","notes":"","closeDate":""},{"id":"2777547479","name":"Artisan Tropic","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2777547479","board":"eagle","createdAt":"2026-03-12T18:07:47Z","updatedAt":"2026-05-06T14:17:33Z","stage":"New","substatus":"","followDate":"","followStatus":"","owner":"","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786714244","name":"Ace Tool","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2786714244","board":"eagle","createdAt":"2026-03-18T02:17:52Z","updatedAt":"2026-05-06T14:19:03Z","stage":"New","substatus":"","followDate":"","followStatus":"","owner":"","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2786715813","name":"HelloMary","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2786715813","board":"eagle","createdAt":"2026-03-18T02:22:31Z","updatedAt":"2026-05-06T14:20:49Z","stage":"New","substatus":"","followDate":"","followStatus":"","owner":"","value":0,"arr":0,"source":"Growth Automation","notes":"marijuana dispensary","closeDate":""},{"id":"2815400760","name":"Gather Brands","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2815400760","board":"eagle","createdAt":"2026-03-31T18:53:09Z","updatedAt":"2026-05-06T14:24:28Z","stage":"New","substatus":"Following Up","followDate":"","followStatus":"","owner":"Darryl Reid","value":0,"arr":0,"source":"Growth Automation","notes":"Women's Sales Agency (Not a qualified lead for apt or eagle)","closeDate":""},{"id":"2815435099","name":"Handle with Care Express","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2815435099","board":"eagle","createdAt":"2026-03-31T19:15:30Z","updatedAt":"2026-05-06T13:05:37Z","stage":"New","substatus":"Following Up","followDate":"","followStatus":"","owner":"","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"5035023680","name":"Jonathan English","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/5035023680","board":"eagle","createdAt":"2025-10-09T08:21:33Z","updatedAt":"2026-05-06T14:09:45Z","stage":"New","substatus":"","followDate":"","followStatus":"","owner":"","value":0,"arr":0,"source":"","notes":"","closeDate":""},{"id":"2838058451","name":"J2K Fun-gistics","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2838058451","board":"eagle","createdAt":"2026-04-13T14:32:53Z","updatedAt":"2026-05-27T16:56:15Z","stage":"New","substatus":"Following Up","followDate":"2026-05-28","followStatus":"Scheduled","owner":"Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"","closeDate":""},{"id":"2840954019","name":"UndefeatedJ & Kick'n Kicks","url":"https://advanceprotech-squad.monday.com/boards/2152071345/pulses/2840954019","board":"eagle","createdAt":"2026-04-14T14:51:36Z","updatedAt":"2026-05-27T16:57:18Z","stage":"New","substatus":"Following Up","followDate":"2026-05-28","followStatus":"Scheduled","owner":"Darryl Reid, Administrator","value":0,"arr":0,"source":"Growth Automation","notes":"web site is under construction, no reponses to email, Lindking checks out as legit","closeDate":""}]</script>
-
-<script>
-// ============= SNAPSHOT DATA (used when window.cowork is unavailable) =============
-// Captured: 2026-05-28. Re-generate to refresh. 38 active + recent-lost deals.
-const SNAPSHOT_DATA = (() => {
-  try { return JSON.parse(document.getElementById('snapshot-data').textContent); }
-  catch { return []; }
-})();
-const SNAPSHOT_DATE = '2026-05-28';
-
-// ============= CAPTURE PRISTINE SOURCE =============
-// Grab the HTML before any render mutates the DOM so "View HTML" shows the real source.
-const SOURCE_HTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-
-// ============= VIEW CODE MODAL =============
-(function(){
-  const btn = document.getElementById('view-code-btn');
-  const modal = document.getElementById('code-modal');
-  const closeBtn = document.getElementById('close-code-btn');
-  const copyBtn = document.getElementById('copy-code-btn');
-  const pre = document.getElementById('code-pre');
-
-  function open(){
-    pre.textContent = SOURCE_HTML;
-    modal.classList.add('open');
-    modal.setAttribute('aria-hidden','false');
-  }
-  function close(){
-    modal.classList.remove('open');
-    modal.setAttribute('aria-hidden','true');
-  }
-
-  btn.addEventListener('click', open);
-  closeBtn.addEventListener('click', close);
-  modal.addEventListener('click', e => { if (e.target === modal) close(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('open')) close(); });
-
-  copyBtn.addEventListener('click', async () => {
-    const reset = () => setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2200);
-    try {
-      await navigator.clipboard.writeText(SOURCE_HTML);
-      copyBtn.textContent = '✓ Copied';
-      copyBtn.classList.add('copied');
-      reset();
-    } catch (err) {
-      // Fallback: select the <pre> text so user can Cmd/Ctrl+C
-      try {
-        const range = document.createRange();
-        range.selectNode(pre);
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-        document.execCommand('copy');
-        copyBtn.textContent = '✓ Copied';
-        copyBtn.classList.add('copied');
-      } catch (e2) {
-        copyBtn.textContent = 'Select + ⌘/Ctrl+C';
-      }
-      reset();
-    }
-  });
-})();
-
-// ============= CONFIG =============
-const APTX_BOARD = 2145982976;
-const EAGLE_BOARD = 2152071345;
-
-// Column IDs (verified via probe 2026-05-26)
-const COL_APTX = {
-  stage:'deal_stage', substatus:'color_mm1q1710', followDate:'date_mm2mfqn1',
-  followStatus:'color_mm2mw8p', owner:'deal_owner', value:'deal_value',
-  arr:'numeric_mm1qw8bd', contact:'deal_contact', source:'dropdown_mky71jka',
-  notes:'text_mm337cc9', closeDate:'deal_close_date', website:'link_mm33fcvf'
-};
-const COL_EAGLE = {
-  stage:'deal_stage', substatus:'color_mm1z6hq0', followDate:'date_mm2npg1n',
-  followStatus:'color_mm2n7r0x', owner:'deal_owner', value:'deal_value',
-  arr:'numeric_mm2njx0x', contact:'deal_contact', source:'dropdown_mm2dgh1',
-  notes:'text_mm33f5w8', closeDate:'deal_expected_close_date', website:'link_mm33nv15',
-  lastInter:'date__1'
-};
-
-// ============= TAB SWITCHING =============
-document.querySelectorAll('.tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById(btn.dataset.tab + '-tab').classList.add('active');
-  });
-});
-
-// ============= HELPERS =============
-const cv = (item, colId) => {
-  const c = item.column_values.find(c => c.id === colId);
-  return c || {text:null, value:null};
-};
-const cvText = (item, colId) => cv(item, colId).text || '';
-const cvVal = (item, colId) => {
-  const v = cv(item, colId).value;
-  if (!v) return null;
-  try { return JSON.parse(v); } catch { return v; }
-};
-// REFERENCE_DATE = what the report treats as "today". Defaults to the real now;
-// when running in snapshot mode it gets overridden to the snapshot capture date
-// so "today's activity" reflects the snapshot day, not the day the file is opened.
-let REFERENCE_DATE = new Date();
-const isToday = (iso) => {
-  if (!iso) return false;
-  const d = new Date(iso);
-  const t = REFERENCE_DATE;
-  return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate();
-};
-const daysSince = (iso) => {
-  if (!iso) return null;
-  return Math.floor((REFERENCE_DATE.getTime() - new Date(iso).getTime()) / 86400000);
-};
-const fmtTime = (iso) => {
-  if (!iso) return '';
-  const d = new Date(iso);
-  return d.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', hour12:false});
-};
-const fmtDate = (iso) => {
-  if (!iso) return '';
-  const d = new Date(iso);
-  const yr = d.getFullYear();
-  const opts = yr === new Date().getFullYear() ? {month:'short', day:'numeric'} : {month:'short', day:'numeric', year:'numeric'};
-  return d.toLocaleDateString('en-US', opts);
-};
-const esc = (s) => String(s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const fmtMoney = (n) => {
-  n = Number(n);
-  if (!n || isNaN(n)) return '';
-  if (n >= 1000) return '$' + Math.round(n/1000) + 'K';
-  return '$' + n.toLocaleString();
-};
-
-// ============= MONDAY DATA FETCH =============
-const MONDAY_TOOL = 'mcp__58c3fc5a-bace-447a-aadd-9cfaec61309b__all_monday_api';
-
-// Wait for window.cowork.callMcpTool to be available (it may load asynchronously)
-async function waitForCowork(maxMs = 4000) {
-  const start = Date.now();
-  while (Date.now() - start < maxMs) {
-    if (typeof window !== 'undefined' && window.cowork && typeof window.cowork.callMcpTool === 'function') {
-      return true;
-    }
-    await new Promise(r => setTimeout(r, 100));
-  }
-  return false;
-}
-
-// Extract a JS object from whatever shape callMcpTool returned
-function unwrapMcpResponse(res) {
-  if (res == null) throw new Error('callMcpTool returned null/undefined');
-  if (typeof res === 'string') {
-    try { return JSON.parse(res); }
-    catch (e) { throw new Error('Response was a string but not valid JSON: ' + res.slice(0, 160)); }
-  }
-  if (typeof res === 'object') {
-    // MCP standard: {content: [{type:'text', text:'...'}]}
-    if (Array.isArray(res.content) && res.content[0]) {
-      const txt = res.content[0].text;
-      if (typeof txt === 'string') {
-        try { return JSON.parse(txt); }
-        catch (e) { throw new Error('content[0].text was not valid JSON: ' + txt.slice(0, 160)); }
-      }
-    }
-    // Already-parsed result shapes
-    if (res.result) return typeof res.result === 'string' ? JSON.parse(res.result) : res.result;
-    if (res.data) return res.data;
-    if (res.boards) return res; // top-level Monday response
-    // Error response?
-    if (res.error) throw new Error('callMcpTool returned error: ' + JSON.stringify(res.error).slice(0, 200));
-    if (res.isError) throw new Error('callMcpTool flagged error: ' + JSON.stringify(res).slice(0, 200));
-  }
-  throw new Error('Unrecognised response shape: ' + JSON.stringify(res).slice(0, 200));
-}
-
-async function fetchBoard(boardId) {
-  const query = `query($boardId: ID!) {
-    boards(ids: [$boardId]) {
-      items_page(limit: 500) {
-        cursor
-        items { id name url created_at updated_at
-          column_values { id type text value } } } } }`;
-  let res;
-  try {
-    res = await window.cowork.callMcpTool(MONDAY_TOOL, {
-      query,
-      variables: JSON.stringify({ boardId: String(boardId) })
-    });
-  } catch (e) {
-    throw new Error(`Monday call failed for board ${boardId}: ${e && e.message ? e.message : String(e)}`);
-  }
-  const data = unwrapMcpResponse(res);
-  const items = data && data.boards && data.boards[0] && data.boards[0].items_page && data.boards[0].items_page.items;
-  if (!Array.isArray(items)) {
-    throw new Error(`Board ${boardId}: response missing boards[0].items_page.items. Got keys: ${Object.keys(data || {}).join(',')}`);
-  }
-  return items;
-}
-
-// ============= NORMALIZE =============
-function normalize(item, cols, board) {
-  const stage = cvText(item, cols.stage);
-  const substatus = cvText(item, cols.substatus);
-  const followDate = cvText(item, cols.followDate);
-  const followStatus = cvText(item, cols.followStatus);
-  const owner = cvText(item, cols.owner);
-  const value = parseFloat(cvText(item, cols.value)) || 0;
-  const arr = parseFloat(cvText(item, cols.arr)) || 0;
-  const source = cvText(item, cols.source) || '';
-  const notes = cvText(item, cols.notes);
-  const closeDate = cvText(item, cols.closeDate);
-  return {
-    id: item.id, name: item.name, url: item.url, board,
-    createdAt: item.created_at, updatedAt: item.updated_at,
-    stage, substatus, followDate, followStatus, owner,
-    value, arr, source, notes, closeDate,
-    days: daysSince(item.created_at)
-  };
-}
-
-// ============= ACTIVITY CATEGORIZATION =============
-function getActivityType(deal) {
-  // Returns {positive: bool, tags: [], narrative: ''} or null
-  const updated = new Date(deal.updatedAt);
-  const created = new Date(deal.createdAt);
-  const tags = [];
-  let positive = true;
-  let narrative = '';
-
-  // New deal added today
-  if (isToday(deal.createdAt)) {
-    tags.push({cls:'new', txt:'NEW DEAL'});
-    narrative = `New ${deal.source ? deal.source + ' lead' : 'lead'} added`;
-    if (deal.stage) narrative += ` at ${deal.stage} stage`;
-    if (deal.substatus) narrative += ` (${deal.substatus})`;
-    if (deal.value) narrative += ` — ${fmtMoney(deal.value)}${deal.arr ? ' + ' + fmtMoney(deal.arr) + ' ARR' : ''}`;
-    narrative += '.';
-    if (deal.notes) narrative += ' Notes: ' + deal.notes;
-    return {positive: true, tags, narrative, time: deal.createdAt};
-  }
-
-  // Updated today but not created
-  if (!isToday(deal.updatedAt)) return null;
-
-  // Categorize by current state
-  const stage = (deal.stage || '').toLowerCase();
-  const sub = (deal.substatus || '').toLowerCase();
-  const fs = (deal.followStatus || '').toLowerCase();
-
-  if (stage === 'lost') {
-    tags.push({cls:'lost', txt:'LOST'});
-    narrative = `Marked Lost. ${deal.notes || 'No reason logged.'}`;
-    return {positive: false, tags, narrative, time: deal.updatedAt};
-  }
-  if (stage === 'won') {
-    tags.push({cls:'promo', txt:'WON'});
-    narrative = `Closed Won${deal.value ? ' — ' + fmtMoney(deal.value) : ''}${deal.arr ? ' + ' + fmtMoney(deal.arr) + ' ARR' : ''}.`;
-    return {positive: true, tags, narrative, time: deal.updatedAt};
-  }
-  if (stage === 'proposal' || stage === 'negotiation') {
-    tags.push({cls:'prop', txt: stage === 'proposal' ? 'PROPOSAL' : 'NEGOTIATION'});
-    if (sub === 'engaged') tags.push({cls:'engage', txt:'ENGAGED'});
-    narrative = `Moved to ${deal.stage}${deal.substatus ? ' / ' + deal.substatus : ''}`;
-    if (deal.value) narrative += ` — ${fmtMoney(deal.value)}${deal.arr ? ' + ' + fmtMoney(deal.arr) + ' ARR' : ''}`;
-    narrative += '.';
-    return {positive: true, tags, narrative, time: deal.updatedAt};
-  }
-  if (fs === 'due today') {
-    tags.push({cls:'status', txt:'DUE TODAY'});
-    narrative = `Follow-up due today${deal.followDate ? ' (' + fmtDate(deal.followDate) + ')' : ''}.${deal.notes ? ' ' + deal.notes : ''}`;
-    return {positive: true, tags, narrative, time: deal.updatedAt};
-  }
-  if (fs === 'dean call') {
-    tags.push({cls:'dean', txt:'DEAN CALL'});
-    narrative = `Dean Call scheduled${deal.followDate ? ' ' + fmtDate(deal.followDate) : ''}.${deal.notes ? ' ' + deal.notes : ''}`;
-    return {positive: true, tags, narrative, time: deal.updatedAt};
-  }
-  if (fs === 'over due') {
-    tags.push({cls:'status', txt:'OVERDUE'});
-    narrative = `Follow-up overdue${deal.followDate ? ' since ' + fmtDate(deal.followDate) : ''}.`;
-    return {positive: false, tags, narrative, time: deal.updatedAt};
-  }
-  if (sub.includes('non-responsive')) {
-    tags.push({cls:'status', txt:'NON-RESPONSIVE'});
-    narrative = `Marked non-responsive.${deal.notes ? ' ' + deal.notes : ''}`;
-    return {positive: false, tags, narrative, time: deal.updatedAt};
-  }
-  if (sub === 'direct reply sent' || sub === 'engaged') {
-    tags.push({cls:'engage', txt: sub === 'engaged' ? 'ENGAGED' : 'REPLY SENT'});
-    narrative = `Status: ${deal.substatus}${deal.notes ? '. ' + deal.notes : ''}.`;
-    return {positive: true, tags, narrative, time: deal.updatedAt};
-  }
-
-  // Generic update
-  tags.push({cls:'status', txt:'UPDATED'});
-  narrative = `${deal.stage}${deal.substatus ? ' / ' + deal.substatus : ''} — status touched.${deal.notes ? ' ' + deal.notes : ''}`;
-  return {positive: true, tags, narrative, time: deal.updatedAt};
-}
-
-// ============= RENDER =============
-function render(allDeals) {
-  const today = REFERENCE_DATE;
-  const todayStr = today.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
-
-  // Filter today's activity
-  const todayDeals = allDeals.filter(d => isToday(d.updatedAt) || isToday(d.createdAt));
-  const activities = todayDeals.map(d => ({deal: d, act: getActivityType(d)})).filter(x => x.act);
-
-  // Sort by time desc
-  activities.sort((a,b) => new Date(b.act.time) - new Date(a.act.time));
-
-  const positive = activities.filter(a => a.act.positive);
-  const negative = activities.filter(a => !a.act.positive);
-
-  // Counts
-  const newCount = activities.filter(a => a.act.tags.some(t => t.txt === 'NEW DEAL')).length;
-  const promoCount = activities.filter(a => a.act.tags.some(t => ['PROPOSAL','NEGOTIATION','WON'].includes(t.txt))).length;
-  const lostCount = activities.filter(a => a.act.tags.some(t => t.txt === 'LOST')).length;
-  const deanCount = activities.filter(a => a.act.tags.some(t => t.txt === 'DEAN CALL')).length;
-
-  // Due Today (across all deals, not just today-updated)
-  const dueToday = allDeals.filter(d => (d.followStatus||'').toLowerCase() === 'due today');
-
-  // Win banner — any new deal at Proposal/Won or new deal with value > 10K added today
-  const win = todayDeals.find(d => isToday(d.createdAt) && (['Proposal','Negotiation','Won'].includes(d.stage) || d.value >= 10000));
-
-  // This Week preview — group follow-ups by day
-  const weekDays = [];
-  for (let i = 1; i <= 4; i++) {
-    const d = new Date(REFERENCE_DATE.getTime()); d.setDate(d.getDate() + i);
-    const key = d.toISOString().slice(0,10);
-    const items = allDeals.filter(x => x.followDate === key);
-    weekDays.push({date: d, items});
-  }
-
-  // Open items — missing owner OR (in trial, no follow date) OR (no follow date + non-responsive)
-  const openItems = allDeals.filter(d => {
-    const active = !['Won','Lost','On Hold','Nurture'].includes(d.stage);
-    if (!active) return false;
-    const missingOwner = !d.owner;
-    const trialNoFollow = (d.substatus||'').toLowerCase() === 'in trial' && !d.followDate;
-    const noFollowNonResp = !d.followDate && (d.substatus||'').toLowerCase().includes('non-responsive');
-    return missingOwner || trialNoFollow || noFollowNonResp;
-  }).slice(0, 12);
-
-  // Build sub-narrative for hero
-  const subParts = [];
-  if (newCount) subParts.push(`${newCount} new deal${newCount>1?'s':''} added`);
-  if (promoCount) subParts.push(`${promoCount} stage promotion${promoCount>1?'s':''}`);
-  if (deanCount) subParts.push(`${deanCount} Dean Call${deanCount>1?'s':''} scheduled`);
-  if (lostCount) subParts.push(`${lostCount} lost`);
-  if (dueToday.length) subParts.push(`${dueToday.length} due today`);
-  const subText = subParts.length ? subParts.join(' · ') : 'No deal activity logged yet today.';
-
-  // ============= RENDER HTML =============
-  let html = '';
-
-  // Hero
-  html += `<div class="hero">
-    <div>
-      <h2>📋 Today's Activity — ${esc(todayStr)}</h2>
-      <div class="sub">${esc(subText)}</div>
-    </div>
-    <div class="hero-count">
-      <div class="n">${activities.length}</div>
-      <div class="l">Deals touched today</div>
-    </div>
-  </div>`;
-
-  // Win banner
-  if (win) {
-    const vTxt = win.value ? fmtMoney(win.value) + (win.arr ? ' + ' + fmtMoney(win.arr) + ' ARR' : '') : 'value TBD';
-    html += `<div class="banner win">
-      <div class="title">🎯 Big add</div>
-      <div class="body"><strong><a href="${esc(win.url)}" target="_blank" style="color:#fff;text-decoration:underline">${esc(win.name)}</a></strong> — new ${esc(win.stage)} deal at ${vTxt}. ${esc(win.notes || 'Sales action needed to confirm.')}</div>
-    </div>`;
-  }
-
-  // Due today banner
-  if (dueToday.length) {
-    html += `<div class="banner due">
-      <div class="title">🔴 Due Today</div>
-      <div class="body">${dueToday.map(d => `<span class="due-chip"><a href="${esc(d.url)}" target="_blank">${esc(d.name)}</a></span>`).join('')}</div>
-    </div>`;
-  }
-
-  // Stat tiles
-  const tiles = [];
-  tiles.push({cls:'navy', n: newCount, l:'New deals today', s: newCount ? '' : 'No new additions'});
-  tiles.push({cls:'purple', n: deanCount, l:'Dean Calls today', s: deanCount ? 'scheduled today' : 'None scheduled'});
-  tiles.push({cls:'gold', n: promoCount, l:'Promotions today', s: promoCount ? 'Stage advanced' : 'No promotions'});
-  tiles.push({cls: lostCount ? 'red' : 'slate', n: lostCount, l:'Lost today', s: lostCount ? 'Review reasons' : 'Zero losses'});
-  html += `<div class="tiles">` + tiles.map(t =>
-    `<div class="tile ${t.cls}"><div class="n">${t.n}</div><div class="l">${esc(t.l)}</div><div class="s">${esc(t.s)}</div></div>`
-  ).join('') + `</div>`;
-
-  // Two-column activity log
-  const renderEntry = (a) => {
-    const d = a.deal, act = a.act;
-    return `<div class="entry">
-      <div class="entry-head">
-        <span class="entry-co"><a href="${esc(d.url)}" target="_blank">${esc(d.name)}</a></span>
-        <span class="entry-time">${fmtTime(act.time)}</span>
+    <div class="ticket" data-idx="6">
+      <div class="num">2.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3045813635" target="_blank" rel="noopener">Login Issues with Protege5</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">Protege Casual</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 3, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
       </div>
-      <div class="entry-body">${esc(act.narrative)}</div>
-      <div class="entry-tags">${act.tags.map(t => `<span class="tag ${t.cls}">${esc(t.txt)}</span>`).join('')}${d.board === 'eagle' ? '<span class="tag" style="background:#CCFBF1;color:#0F766E">🦅 EAGLE</span>' : ''}</div>
-    </div>`;
-  };
-
-  html += `<div class="cols">
-    <div class="col-card pos">
-      <h3>🆕 New Deals · Promotions · Outreach <span class="ct">${positive.length}</span></h3>
-      <div class="col-body">${positive.length ? positive.map(renderEntry).join('') : '<div class="entry" style="color:var(--muted);font-style:italic">No positive activity logged today.</div>'}</div>
-    </div>
-    <div class="col-card neg">
-      <h3>🔴 Losses · Risks · Status Downgrades <span class="ct">${negative.length}</span></h3>
-      <div class="col-body">${negative.length ? negative.map(renderEntry).join('') : '<div class="entry" style="color:var(--muted);font-style:italic">No losses or risks today. Clean board.</div>'}</div>
-    </div>
-  </div>`;
-
-  // This week preview
-  html += `<div class="preview">
-    <h3>📅 This Week — Upcoming Follow-ups</h3>
-    <div class="preview-grid">
-      ${weekDays.map(w => {
-        const label = w.date.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
-        const body = w.items.length
-          ? w.items.slice(0,5).map(it => `<div><a href="${esc(it.url)}" target="_blank">${esc(it.name)}</a>${it.followStatus ? ' · <span class="mono" style="color:var(--muted)">' + esc(it.followStatus) + '</span>' : ''}</div>`).join('') + (w.items.length > 5 ? `<div class="empty">+${w.items.length-5} more</div>` : '')
-          : '<div class="empty">No scheduled follow-ups</div>';
-        return `<div class="preview-day"><div class="d">${esc(label)}</div><div class="items">${body}</div></div>`;
-      }).join('')}
-    </div>
-  </div>`;
-
-  // Open items
-  if (openItems.length) {
-    html += `<div class="open-card">
-      <h3>⚠️ Open Items — Needs Attention</h3>
-      <div class="open-chips">
-        ${openItems.map(d => {
-          const reason = !d.owner ? 'no owner' : ((d.substatus||'').toLowerCase() === 'in trial' ? 'trial, no follow-up' : 'non-responsive, no follow-up');
-          return `<span class="open-chip"><a href="${esc(d.url)}" target="_blank">${esc(d.name)}</a> · ${esc(reason)}</span>`;
-        }).join('')}
-      </div>
-    </div>`;
-  }
-
-  document.getElementById('today-body').innerHTML = html;
-}
-
-// ============= FULL PIPELINE LOGIC =============
-function isActive(stage){ return !['Won','Lost','On Hold','Nurture'].includes(stage); }
-
-function categorize(d){
-  const s = d.stage || '';
-  const sub = (d.substatus||'').toLowerCase();
-  const fs = (d.followStatus||'').toLowerCase();
-
-  if (s === 'Lost') {
-    const days = daysSince(d.updatedAt);
-    if (days !== null && days <= 7) return 'lost';
-    return null;
-  }
-  if (d.board === 'eagle') {
-    if (isActive(s)) return 'eagle';
-    return null;
-  }
-  if (!isActive(s)) return null;
-  if (['Negotiation','Proposal'].includes(s)) return 'hot';
-  if (s === 'Engaged') return 'eng';
-  if (sub === 'in trial') return 'tri';
-  if (s === 'Following up') {
-    if (['direct reply sent','engaged','dean call'].includes(sub) || fs === 'dean call') return 'fol1';
-    return 'fol2';
-  }
-  if (s === 'New Lead' || s === 'New') return 'newl';
-  return null;
-}
-
-function makeFlag(d){
-  const s = d.stage || '';
-  const sub = (d.substatus||'').toLowerCase();
-  const fs = (d.followStatus||'').toLowerCase();
-  const days = d.days;
-
-  if (['Negotiation','Proposal'].includes(s) && (sub.includes('non-responsive') || sub === '')) {
-    if (sub.includes('non-responsive')) return {type:'r', reason:`${s} stalled — non-responsive${d.value ? ' (' + fmtMoney(d.value) + ' at risk)' : ''}.`};
-  }
-  if (sub === 'in trial' && days > 30) return {type:'r', reason:`Trial open ${days}d with no recent contact.`};
-  if (sub.includes('non-responsive') && days > 60) return {type:'r', reason:`Non-responsive ${days}d in pipeline.`};
-  if (fs === 'over due') return {type:'a', reason:'Follow-up overdue — re-engage.'};
-  if (!d.owner && isActive(s)) return {type:'a', reason:'No owner assigned.'};
-  if (sub === 'in trial' && !d.followDate) return {type:'a', reason:'Trial active, no follow-up scheduled.'};
-  if (s === 'Proposal' && !d.closeDate && days > 60) return {type:'a', reason:'Proposal out >60d with no close date.'};
-  if (sub === 'direct reply sent' || sub === 'engaged') return {type:'g', reason:`${d.substatus} — active engagement.`};
-  if (s === 'Proposal') return {type:'g', reason:`Proposal out${d.value ? ' (' + fmtMoney(d.value) + ')' : ''}.`};
-  if (s === 'Negotiation') return {type:'g', reason:`In negotiation${d.value ? ' (' + fmtMoney(d.value) + ')' : ''}.`};
-  if (fs === 'dean call') return {type:'g', reason:`Dean Call${d.followDate ? ' ' + fmtDate(d.followDate) : ''}.`};
-  if (fs === 'due today') return {type:'g', reason:'Action item ready today.'};
-  return {type:'a', reason:'Standard pipeline activity.'};
-}
-
-function nextAction(d){
-  const sub = (d.substatus||'').toLowerCase();
-  const fs = (d.followStatus||'').toLowerCase();
-
-  if (fs === 'due today') return 'Due Today — execute follow-up + log result in Monday.';
-  if (fs === 'over due') {
-    const od = d.followDate ? daysSince(d.followDate) : null;
-    return `Over Due${od && od > 0 ? ' ' + od + 'd' : ''} — re-engage and set new follow-up.`;
-  }
-  if (fs === 'dean call') {
-    const dt = d.followDate ? fmtDate(d.followDate) : 'date TBD';
-    const purpose = d.notes && d.notes.trim() ? ' — ' + d.notes.trim().slice(0,90) : '';
-    return `Dean Call ${dt}${purpose}.`;
-  }
-  if (sub === 'in trial' && !d.owner) return 'Assign owner + set follow-up date in Monday.';
-  if (sub === 'not system ready') return `Follow-up ${d.followDate ? fmtDate(d.followDate) : 'TBD'} in Monday — paused appropriately.`;
-  if (d.followDate) return `Follow-up scheduled ${fmtDate(d.followDate)} in Monday — execute as planned.`;
-  if (sub.includes('non-responsive')) return 'No follow-up date set in Monday — schedule one or move to Nurture.';
-  if (!d.owner) return 'Assign owner in Monday + set first follow-up.';
-  return d.followStatus ? `Status: ${d.followStatus} — set next step in Monday.` : 'Review and set next step in Monday.';
-}
-
-function commSummary(d){
-  const parts = [];
-  if (d.source) parts.push(`${d.source} lead.`);
-  const ss = [d.stage, d.substatus].filter(Boolean).join(' · ');
-  if (ss) parts.push(`${ss}.`);
-  if (d.notes && d.notes.trim()) parts.push(`Notes: ${d.notes.trim()}`);
-  else parts.push('No call notes logged.');
-  if (d.followDate) parts.push(`Follow-up ${fmtDate(d.followDate)}${d.followStatus ? ' (' + d.followStatus + ')' : ''}.`);
-  else if (d.followStatus) parts.push(`Follow-up status: ${d.followStatus}.`);
-  return parts.join(' ');
-}
-
-function pillStage(stage){
-  if (!stage) return '';
-  const s = stage.toLowerCase();
-  let cls = '';
-  if (s === 'negotiation') cls = 'neg';
-  else if (s === 'proposal') cls = 'prop';
-  else if (s === 'engaged') cls = 'eng';
-  else if (s === 'following up') cls = 'fol';
-  else if (s === 'new lead' || s === 'new') cls = 'new';
-  else if (s === 'lost') cls = 'lost';
-  return `<span class="pill pill-stage ${cls}">${esc(stage)}</span>`;
-}
-
-function pillSub(sub){
-  if (!sub) return '';
-  const s = sub.toLowerCase();
-  let cls = '';
-  if (s === 'engaged' || s === 'direct reply sent') cls = 'eng';
-  else if (s.includes('non-responsive')) cls = 'nr';
-  else if (s === 'in trial') cls = 'tr';
-  else if (s === 'not system ready') cls = 'par';
-  return `<span class="pill pill-sub ${cls}">${esc(sub)}</span>`;
-}
-
-function pillFollow(fs){
-  if (!fs) return '';
-  const s = fs.toLowerCase();
-  let cls = 'sch';
-  if (s === 'due today') cls = 'due';
-  else if (s === 'over due') cls = 'over';
-  else if (s === 'dean call') cls = 'dean';
-  else if (s.includes('waiting')) cls = 'wait';
-  return `<span class="pill pill-fol ${cls}">${esc(fs)}</span>`;
-}
-
-function pillPlatform(board){
-  return board === 'eagle'
-    ? '<span class="pill pill-plat eagle">🦅 EAGLE</span>'
-    : '<span class="pill pill-plat">APTX</span>';
-}
-
-function dayCls(days){
-  if (days === null || days === undefined) return '';
-  if (days < 30) return 'days-g';
-  if (days < 60) return 'days-a';
-  return 'days-r';
-}
-
-function srcLabel(d){
-  if (d.source) return d.source;
-  return '—';
-}
-
-function renderRow(d){
-  const flag = makeFlag(d);
-  const flagEmoji = flag.type === 'r' ? '🔴' : flag.type === 'a' ? '🟡' : '🟢';
-  const vTxt = d.value ? fmtMoney(d.value) + (d.arr ? ' + ' + fmtMoney(d.arr) + ' ARR' : '') : '';
-  return `<tr>
-    <td>
-      <div class="co"><a href="${esc(d.url)}" target="_blank">${esc(d.name)}</a></div>
-      ${d.owner ? `<div class="ct">${esc(d.owner)}</div>` : '<div class="ct" style="color:var(--amber);font-weight:600">no owner</div>'}
-      ${vTxt ? `<div class="vl">${esc(vTxt)}</div>` : ''}
-    </td>
-    <td>${pillPlatform(d.board)}</td>
-    <td>${pillStage(d.stage)}${pillSub(d.substatus)}${pillFollow(d.followStatus)}</td>
-    <td class="mono" style="font-size:10.5px;color:var(--slate)">${fmtDate(d.createdAt)}</td>
-    <td class="mono" style="font-size:10.5px;color:var(--slate)">${fmtDate(d.updatedAt)}</td>
-    <td><span class="days ${dayCls(d.days)}">${d.days !== null ? d.days + 'd' : '—'}</span></td>
-    <td style="font-size:10.5px;color:var(--slate)">${esc(srcLabel(d))}</td>
-    <td><div class="comm">${esc(commSummary(d))}</div></td>
-    <td><div class="risk"><span class="flag">${flagEmoji}</span><span class="reason">${esc(flag.reason)}</span></div></td>
-    <td><div class="next">${esc(nextAction(d))}</div></td>
-  </tr>`;
-}
-
-function renderSection(title, banner, deals){
-  if (!deals.length) return '';
-  return `<div class="section-banner ${banner}">
-    <span>${esc(title)}</span>
-    <span class="ct">${deals.length} deal${deals.length>1?'s':''}</span>
-  </div>
-  <table class="deal-tbl">
-    <colgroup>
-      <col class="c-co"><col class="c-pl"><col class="c-st"><col class="c-dt"><col class="c-dt">
-      <col class="c-da"><col class="c-sr"><col class="c-cm"><col class="c-rk"><col class="c-na">
-    </colgroup>
-    <thead><tr>
-      <th>Company / Contact</th>
-      <th>Platform</th>
-      <th>Stage · Status</th>
-      <th>Lead In</th>
-      <th>Last Activity</th>
-      <th>Days</th>
-      <th>Source</th>
-      <th>Communication Summary</th>
-      <th>Opportunity / Risk</th>
-      <th>Next Action</th>
-    </tr></thead>
-    <tbody>${deals.map(renderRow).join('')}</tbody>
-  </table>`;
-}
-
-function renderFull(all){
-  const buckets = {hot:[], eng:[], tri:[], fol1:[], fol2:[], newl:[], eagle:[], lost:[]};
-  all.forEach(d => {
-    const k = categorize(d);
-    if (k && buckets[k]) buckets[k].push(d);
-  });
-  Object.keys(buckets).forEach(k => {
-    buckets[k].sort((a,b) => (b.value - a.value) || (b.days - a.days));
-  });
-
-  const activeAptx = all.filter(d => d.board === 'aptx' && isActive(d.stage)).length;
-  const activeEagle = all.filter(d => d.board === 'eagle' && isActive(d.stage)).length;
-  const totalActive = all.filter(d => isActive(d.stage));
-  const pipelineVal = totalActive.reduce((s,d) => s + d.value, 0);
-  const propsOut = all.filter(d => isActive(d.stage) && ['Proposal','Negotiation'].includes(d.stage)).length;
-  const riskCount = totalActive.filter(d => makeFlag(d).type === 'r').length;
-
-  const today = new Date(REFERENCE_DATE.getTime()); today.setHours(0,0,0,0);
-  const weekEnd = new Date(today); weekEnd.setDate(weekEnd.getDate() + 7);
-  const deanWeek = all.filter(d => {
-    if ((d.followStatus||'').toLowerCase() !== 'dean call') return false;
-    if (!d.followDate) return false;
-    const fd = new Date(d.followDate);
-    return fd >= today && fd <= weekEnd;
-  }).length;
-
-  let html = '';
-
-  // KPI tiles
-  html += `<div class="kpis">
-    <div class="tile navy"><div class="n">${activeAptx}</div><div class="l">Active APTX deals</div><div class="s">In pipeline, excl Won/Lost</div></div>
-    <div class="tile teal"><div class="n">${activeEagle}</div><div class="l">Eagle pipeline</div><div class="s">Inventory deals active</div></div>
-    <div class="tile gold"><div class="n">${fmtMoney(pipelineVal) || '$0'}</div><div class="l">Pipeline value</div><div class="s">One-time fees, active</div></div>
-    <div class="tile purple"><div class="n">${propsOut}</div><div class="l">Proposals + Neg</div><div class="s">Close-stage opportunities</div></div>
-    <div class="tile red"><div class="n">${riskCount}</div><div class="l">Revenue risk</div><div class="s">Red-flagged deals</div></div>
-    <div class="tile blue"><div class="n">${deanWeek}</div><div class="l">Dean Calls this week</div><div class="s">Scheduled in next 7d</div></div>
-  </div>`;
-
-  // Funnel
-  const fSegs = [
-    {label:'Negotiation', count: totalActive.filter(d=>d.stage==='Negotiation').length, bg:'#0D1B2A', dark:false},
-    {label:'Proposal', count: totalActive.filter(d=>d.stage==='Proposal').length, bg:'#C9A84C', dark:true},
-    {label:'Engaged', count: totalActive.filter(d=>d.stage==='Engaged').length, bg:'#6B3FA0', dark:false},
-    {label:'Following Up', count: totalActive.filter(d=>d.board==='aptx' && d.stage==='Following up').length, bg:'#475569', dark:false},
-    {label:'In Trial', count: totalActive.filter(d=>(d.substatus||'').toLowerCase()==='in trial').length, bg:'#1D4ED8', dark:false},
-    {label:'New Lead', count: totalActive.filter(d=>d.board==='aptx' && d.stage==='New Lead').length, bg:'#94A3B8', dark:true},
-    {label:'Eagle Active', count: activeEagle, bg:'#1A7A6E', dark:false}
-  ];
-  const totalFunnel = fSegs.reduce((s,x)=>s+x.count, 0) || 1;
-  html += `<div class="funnel">${fSegs.map(s => {
-    const pct = Math.max(7, (s.count/totalFunnel)*100);
-    const color = s.dark ? '#1A2E42' : '#fff';
-    return `<div class="funnel-seg" style="background:${s.bg};flex:${pct};color:${color}">
-      <div class="n">${s.count}</div><div class="l">${esc(s.label)}</div>
-    </div>`;
-  }).join('')}</div>`;
-
-  // Insights
-  const risks = totalActive
-    .map(d => ({d, f: makeFlag(d)}))
-    .filter(x => x.f.type === 'r')
-    .sort((a,b) => b.d.value - a.d.value)
-    .slice(0, 5);
-  const opps = totalActive
-    .filter(d => ['Proposal','Negotiation'].includes(d.stage)
-              || (d.followStatus||'').toLowerCase() === 'dean call'
-              || ['engaged','direct reply sent'].includes((d.substatus||'').toLowerCase()))
-    .sort((a,b) => (b.value - a.value) || (new Date(b.updatedAt) - new Date(a.updatedAt)))
-    .slice(0, 6);
-
-  html += `<div class="insights">
-    <div class="insight-card risks">
-      <h3>🔴 Revenue Risks <span style="font-weight:400;color:var(--muted);font-size:11px;text-transform:none;letter-spacing:0">top ${Math.min(5,risks.length)}</span></h3>
-      <div class="insight-list">
-        ${risks.length ? risks.map(x => `<div class="insight-item r">
-          <div class="dot"></div>
-          <div class="txt"><span class="co"><a href="${esc(x.d.url)}" target="_blank">${esc(x.d.name)}</a></span>${x.d.value ? ` · <span class="mono">${fmtMoney(x.d.value)}</span>` : ''} — ${esc(x.f.reason)}</div>
-        </div>`).join('') : '<div style="color:var(--muted);font-style:italic;padding:6px 0;font-size:11.5px">No red-flagged deals. Pipeline is clean.</div>'}
+      <div class="right">
+        <span class="age-badge urgent">3.0d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3045813635" target="_blank" rel="noopener">Open in Monday →</a>
       </div>
     </div>
-    <div class="insight-card opps">
-      <h3>🟢 Opportunities <span style="font-weight:400;color:var(--muted);font-size:11px;text-transform:none;letter-spacing:0">top ${Math.min(6,opps.length)}</span></h3>
-      <div class="insight-list">
-        ${opps.length ? opps.map(d => {
-          const flag = makeFlag(d);
-          return `<div class="insight-item g">
-          <div class="dot"></div>
-          <div class="txt"><span class="co"><a href="${esc(d.url)}" target="_blank">${esc(d.name)}</a></span>${d.value ? ` · <span class="mono">${fmtMoney(d.value)}</span>` : ''} — ${esc(flag.reason)}</div>
-        </div>`;
-        }).join('') : '<div style="color:var(--muted);font-style:italic;padding:6px 0;font-size:11.5px">No open opportunities identified.</div>'}
+    <div class="ticket" data-idx="7">
+      <div class="num">3.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3045656518" target="_blank" rel="noopener">Cannot login to Desktop</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">Funding Innovation</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Ruel Arroyo</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 3, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge urgent">3.0d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3045656518" target="_blank" rel="noopener">Open in Monday →</a>
       </div>
     </div>
-  </div>`;
-
-  // Sections
-  html += renderSection('🔴 Hot — Negotiation & Proposal', 'sb-hot', buckets.hot);
-  html += renderSection('🟣 Engaged', 'sb-eng', buckets.eng);
-  html += renderSection('🔵 Active Trials', 'sb-tri', buckets.tri);
-  html += renderSection('🟢 Following Up — With Engagement', 'sb-fol', buckets.fol1);
-  html += renderSection('⚪ Following Up — Non-Responsive / Open', 'sb-fol2', buckets.fol2);
-  html += renderSection('🆕 New Leads', 'sb-new', buckets.newl);
-  html += renderSection('🦅 Eagle Inventory Pipeline', 'sb-eagle', buckets.eagle);
-  html += renderSection('⚫ Lost This Week', 'sb-lost', buckets.lost);
-
-  if (!html.includes('section-banner')) {
-    html += '<div class="placeholder"><div class="em">📭</div><h3>No active deals to display</h3><p>Once deals are added to Monday they\'ll appear here.</p></div>';
-  }
-
-  document.getElementById('full-body').innerHTML = html;
-}
-
-// ============= LOAD =============
-function setMode(mode) {
-  const badge = document.getElementById('mode-badge');
-  if (!badge) return;
-  if (mode === 'snapshot') {
-    badge.textContent = 'Snapshot · ' + SNAPSHOT_DATE;
-    badge.className = 'badge snap';
-  } else if (mode === 'loading') {
-    badge.textContent = 'Loading…';
-    badge.className = 'badge';
-  } else {
-    badge.textContent = 'Live';
-    badge.className = 'badge live';
-  }
-}
-
-function renderLiveError(errMessage) {
-  const msg = `
-    <div class="error" style="margin:16px 0">
-      <strong>Live Monday data fetch failed.</strong>
-      <pre>${esc(errMessage)}</pre>
-      <div style="margin-top:10px;display:flex;gap:8px">
-        <button onclick="load()" style="background:#1A7A3E;color:#fff;border:none;padding:7px 14px;border-radius:5px;font-weight:700;cursor:pointer;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Retry Live</button>
-        <button onclick="useSnapshot()" style="background:#C9A84C;color:#3D2E0E;border:none;padding:7px 14px;border-radius:5px;font-weight:700;cursor:pointer;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Use Snapshot Instead</button>
+    <div class="ticket" data-idx="17">
+      <div class="num">4.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3041038775" target="_blank" rel="noopener">Fwd: WhiskeySisters_Connecting to Your Upgraded Server</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">Whiskey Sisters Supply</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 1, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Awaiting customer</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
       </div>
-    </div>`;
-  document.getElementById('today-body').innerHTML = msg;
-  document.getElementById('full-body').innerHTML = msg;
-}
-
-function useSnapshot() {
-  setMode('snapshot');
-  // Anchor "today" to the snapshot capture date so the Today tab shows
-  // what the day looked like when the snapshot was taken, not the day this file is opened.
-  // Parse as local-noon to avoid off-by-one from timezone interpretation of bare YYYY-MM-DD.
-  REFERENCE_DATE = new Date(SNAPSHOT_DATE + 'T12:00:00');
-  const all = SNAPSHOT_DATA;
-  render(all);
-  renderFull(all);
-  document.getElementById('last-refresh').textContent =
-    'Snapshot from ' + SNAPSHOT_DATE + ' · ' + all.length + ' deals · "today" = snapshot date';
-}
-
-async function load() {
-  // Reset reference date — live mode uses real "now"
-  REFERENCE_DATE = new Date();
-  setMode('loading');
-  document.getElementById('last-refresh').textContent = 'Connecting to Monday…';
-  document.getElementById('today-body').innerHTML =
-    '<div class="loading"><span class="spinner"></span>Pulling fresh data from Monday…</div>';
-  document.getElementById('full-body').innerHTML =
-    '<div class="loading"><span class="spinner"></span>Pulling fresh data from Monday…</div>';
-
-  // Step 1: Wait for window.cowork to be available
-  const coworkReady = await waitForCowork(4000);
-  if (!coworkReady) {
-    // Truly running outside Cowork (GitHub Pages, opened from disk) — use snapshot silently
-    useSnapshot();
-    return;
-  }
-
-  // Step 2: Live fetch
-  try {
-    const [aptxItems, eagleItems] = await Promise.all([
-      fetchBoard(APTX_BOARD),
-      fetchBoard(EAGLE_BOARD)
-    ]);
-    const aptx = aptxItems.map(i => normalize(i, COL_APTX, 'aptx'));
-    const eagle = eagleItems.map(i => normalize(i, COL_EAGLE, 'eagle'));
-    const all = [...aptx, ...eagle];
-    setMode('live');
-    render(all);
-    renderFull(all);
-    document.getElementById('last-refresh').textContent =
-      'Refreshed ' + new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}) + ' · ' + all.length + ' deals (live)';
-  } catch (e) {
-    console.error('[live fetch failed]', e);
-    setMode('snapshot');
-    document.getElementById('last-refresh').textContent = 'Live fetch failed';
-    renderLiveError(e && e.message ? e.message : String(e));
-  }
-}
-
-load();
-</script></body></html>
+      <div class="right">
+        <span class="age-badge urgent">4.7d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3041038775" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="18">
+      <div class="num">5.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3040945595" target="_blank" rel="noopener">Printing Issue on Windows App</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">EIS Parts</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Ruel Arroyo</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 1, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge urgent">4.7d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3040945595" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="24">
+      <div class="num">6.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3040577265" target="_blank" rel="noopener">RE: [##20669##] New Request Created</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">8agroup</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 1, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge urgent">4.9d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3040577265" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div></div>
+      </details>
+      <details class="section" data-cat="NEW" open="">
+        <summary><span class="title">New Tickets <span class="desc">— Just came in — not yet picked up by an agent</span></span><span class="pill new">4</span></summary>
+        <div class="group-body">
+    <div class="ticket" data-idx="13">
+      <div class="num">1.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3043035666" target="_blank" rel="noopener">User Sign Up Issue</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">aptx</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Unassigned</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 2, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Unassigned</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge ">4.0d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3043035666" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="14">
+      <div class="num">2.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3042394882" target="_blank" rel="noopener">User Sign Up Issue</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">aptx</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Unassigned</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 2, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Unassigned</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge ">4.1d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3042394882" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="15">
+      <div class="num">3.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3042368120" target="_blank" rel="noopener">User Sign Up Issue</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">aptx</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Unassigned</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 2, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Unassigned</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge ">4.1d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3042368120" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="16">
+      <div class="num">4.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3041560811" target="_blank" rel="noopener">User Sign Up Issue</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">aptx</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Unassigned</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 2, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Unassigned</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge ">4.3d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3041560811" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div></div>
+      </details>
+      <details class="section" data-cat="ACTIVE_APTX" open="">
+        <summary><span class="title">Active — Currently Working <span class="desc">— Agent is actively investigating / responding</span></span><span class="pill info">14</span></summary>
+        <div class="group-body">
+    <div class="ticket" data-idx="0">
+      <div class="num">1.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3037912976" target="_blank" rel="noopener">Communication Error Between AdvancePro and QuickBooks</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">Elite Air Systems</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Ruel Arroyo</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jun 30, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge stale">5.7d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3037912976" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="1">
+      <div class="num">2.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3017233248" target="_blank" rel="noopener">Link item 5846</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">Ride PDW</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jun 22, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge stale">14d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3017233248" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="4">
+      <div class="num">3.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3043974069" target="_blank" rel="noopener">Link new products</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">ridepdw.com</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 2, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge ">3.7d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3043974069" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="5">
+      <div class="num">4.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3044017678" target="_blank" rel="noopener">Inventory syncing?</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">RidePDW</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 2, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge ">3.6d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3044017678" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="8">
+      <div class="num">5.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3043521255" target="_blank" rel="noopener">38-628 Apple Time -- Missing in SF</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">Funding Innovation</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 2, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge ">3.9d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3043521255" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="9">
+      <div class="num">6.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3040774461" target="_blank" rel="noopener">QBO Connection</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">Senior Living Depot</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 1, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge ">4.8d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3040774461" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="10">
+      <div class="num">7.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3041085004" target="_blank" rel="noopener">Quickbooks Error when using banking</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">Aniara</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 1, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge ">4.6d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3041085004" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="11">
+      <div class="num">8.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3023431751" target="_blank" rel="noopener">Custom reports</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">Aniara</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jun 24, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge stale">12d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3023431751" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="12">
+      <div class="num">9.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3043217100" target="_blank" rel="noopener">Need to cancel subscription to Advancepro</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">bascousa.com</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">?</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 2, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge ">4.0d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3043217100" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="20">
+      <div class="num">10.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3040688371" target="_blank" rel="noopener">AdvancePro-Total inventory value</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">Pacific Service Center</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 1, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">NEW TICKET</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge ">4.9d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3040688371" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="22">
+      <div class="num">11.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3040443582" target="_blank" rel="noopener">Re: Update: Server migration postponed — please keep your existing IP settings</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">IBM</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 1, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge ">4.9d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3040443582" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="25">
+      <div class="num">12.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3040078479" target="_blank" rel="noopener">Sales rep portal too slow</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">8agroup</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 1, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge stale">5.0d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3040078479" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="26">
+      <div class="num">13.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3037840081" target="_blank" rel="noopener">Fw: Message Delivery Failure - INV# 21179</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">directaccessmed.com</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Ruel Arroyo</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jun 30, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge stale">5.8d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3037840081" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="27">
+      <div class="num">14.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3037750318" target="_blank" rel="noopener">AdvancePro-How long for a cycle count change to actually change inventory?</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">Pacific Service Center</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jun 30, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Waiting for APT Support</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge stale">5.8d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3037750318" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div></div>
+      </details>
+      <details class="section" data-cat="WAITING_ON_APTX_DEV" open="">
+        <summary><span class="title">Waiting on APTX Dev (Cloud) <span class="desc">— Handed to APTX cloud dev team</span></span><span class="pill dev">0</span></summary>
+        <div class="group-body"><div class="empty">None right now.</div></div>
+      </details>
+      <details class="section" data-cat="WAITING_ON_APTD_DEV" open="">
+        <summary><span class="title">Waiting on APTD Dev (Desktop) <span class="desc">— Handed to APT Desktop dev team</span></span><span class="pill dev">0</span></summary>
+        <div class="group-body"><div class="empty">None right now.</div></div>
+      </details>
+      <details class="section" data-cat="AWAITING_CUSTOMER">
+        <summary><span class="title">Awaiting Customer <span class="desc">— Reply sent — ball is in the customer's court</span></span><span class="pill muted">4</span></summary>
+        <div class="group-body">
+    <div class="ticket" data-idx="2">
+      <div class="num">1.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3046351806" target="_blank" rel="noopener">To revise inv number</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">Protege Casual</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Gestoni Cordova</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 3, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Awaiting customer</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge ">2.8d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3046351806" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="19">
+      <div class="num">2.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3041015088" target="_blank" rel="noopener">YRP data entry error</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">yrp</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Ruel Arroyo</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jul 1, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Awaiting customer</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge ">4.7d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3041015088" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="21">
+      <div class="num">3.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3017246072" target="_blank" rel="noopener">printing issues</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">Direct Access Med</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Ruel Arroyo</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jun 22, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Awaiting customer</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge stale">14d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3017246072" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div>
+    <div class="ticket" data-idx="23">
+      <div class="num">4.</div>
+      <div class="body">
+        <a class="name" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3001496095" target="_blank" rel="noopener">RoudelMed_Connecting to Your Upgraded Server</a>
+        <div class="meta-row">
+          <span><span class="label">Company:</span> <span class="v bold">Roudel Medical</span></span>
+          <span><span class="label">Agent:</span> <span class="v bold">Ruel Arroyo</span></span>
+          <span><span class="label">Created:</span> <span class="v">Jun 16, 2026</span></span>
+          <span><span class="label">Status:</span> <span class="v">Awaiting customer</span></span>
+        </div>
+        <div class="effort loading">Reading communications…</div>
+      </div>
+      <div class="right">
+        <span class="age-badge stale">20d open</span>
+        <a class="ext-link" href="https://advanceprotech-squad.monday.com/boards/5000145091/pulses/3001496095" target="_blank" rel="noopener">Open in Monday →</a>
+      </div>
+    </div></div>
+      </details>
+      <details class="section" data-cat="RESOLVED_48H" open="">
+        <summary><span class="title">Recently Resolved (last 24h) <span class="desc">— Closed within the last 24 hours</span></span><span class="pill ok">0</span></summary>
+        <div class="group-body"><div class="empty">None right now.</div></div>
+      </details></div></div><script>(function(){var s=document.getElementById("search");if(s)s.addEventListener("input",function(){var q=s.value.trim().toLowerCase();document.querySelectorAll(".ticket").forEach(function(t){t.style.display=!q||t.textContent.toLowerCase().includes(q)?"":"none";});});})();</script></body></html>
